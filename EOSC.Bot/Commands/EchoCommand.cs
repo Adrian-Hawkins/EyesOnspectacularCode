@@ -8,18 +8,19 @@ using System.Threading.Tasks;
 
 namespace EOSC.Bot.Commands
 {
-    public class EchoCommand : IEchoCommand
+    public class EchoCommand : IBotCommand
     {
         public async Task MessageHandler(SocketMessage message)
         {
             if (message.Author.IsBot) return;
+            Console.WriteLine(message.Content);
 
             await ReplyAsync(message, "Hello C#");
         }
 
-        private async Task ReplyAsync(SocketMessage message, string v)
+        private async Task ReplyAsync(SocketMessage message, string messageContents)
         {
-            await message.Channel.SendMessageAsync(v);
+            await message.Channel.SendMessageAsync(messageContents);
         }
     }
 }

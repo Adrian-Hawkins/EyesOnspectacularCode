@@ -5,7 +5,7 @@
 //using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EOSC.Bot.Interfaces
+namespace EOSC.Bot.Interfaces.Classes
 {
     internal interface IDiscordBot
     {

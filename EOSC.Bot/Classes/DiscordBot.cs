@@ -6,10 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using EOSC.Bot.Interfaces;
 using EOSC.Bot.Commands;
 using EOSC.Bot.Interfaces.Commands;
 using System.Net.NetworkInformation;
+using EOSC.Bot.Interfaces.Classes;
 
 namespace EOSC.Bot.Classes
 {
@@ -18,13 +18,11 @@ namespace EOSC.Bot.Classes
         private readonly IConfiguration _configuration;
 
         private readonly DiscordSocketClient _client;
-        //private const string token = _configuration["DiscordToken"] ?? throw new Exception("Missing Discord token");
-        //string discordToken = _configuration["DiscordToken"] ?? throw new Exception("Missing Discord token");
         private string discordToken;
 
         #region Commands
 
-        private readonly IEchoCommand _echoCommand = new EchoCommand();
+        private readonly IBotCommand _echoCommand = new EchoCommand();
 
         #endregion
 
@@ -36,7 +34,7 @@ namespace EOSC.Bot.Classes
                 .Build();
             discordToken = _configuration["DiscordToken"] ?? throw new Exception("Missing Discord token");
             _client = new DiscordSocketClient();
-            this._client.MessageReceived += _echoCommand.MessageHandler;
+            _client.MessageReceived += _echoCommand.MessageHandler;
         }
         #endregion
 
@@ -53,9 +51,13 @@ namespace EOSC.Bot.Classes
                 
         }
 
-        public Task StopAsync()
+        public async Task StopAsync()
         {
-            throw new NotImplementedException();
+            if (_client != null)
+            {
+                await _client.LogoutAsync();
+                await _client.StopAsync();
+            }
         }
     }
 }
