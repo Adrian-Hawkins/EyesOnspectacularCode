@@ -10,8 +10,25 @@ namespace EOSC.Bot
     {
         static async Task Main(string[] args)
         {
-            IDiscordBot Bot = new DiscordBot();
-            await Bot.StartAsync();
+            //IDiscordBot Bot = new DiscordBot();
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+                .AddUserSecrets(Assembly.GetExecutingAssembly())
+                .Build();
+            var serviceProvider = new ServiceCollection()
+                .AddSingleton<IConfiguration>(configuration)
+                .AddScoped<IDiscordBot, DiscordBot>()
+                .BuildServiceProvider();
+            //await Bot.StartAsync();
+            try
+            {
+                IDiscordBot bot = serviceProvider.GetRequiredService<IDiscordBot>();
+                await bot.StartAsync(serviceProvider);
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception.Message);
+                Environment.Exit(-1);
+            }
         }
            
     }

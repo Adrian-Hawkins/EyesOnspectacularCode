@@ -10,6 +10,7 @@ using EOSC.Bot.Commands;
 using EOSC.Bot.Interfaces.Commands;
 using System.Net.NetworkInformation;
 using EOSC.Bot.Interfaces.Classes;
+using System;
 
 namespace EOSC.Bot.Classes
 {
@@ -20,11 +21,8 @@ namespace EOSC.Bot.Classes
         private readonly DiscordSocketClient _client;
         private string discordToken;
 
-        #region Commands
-
-        private readonly IBotCommand _echoCommand = new EchoCommand();
-
-        #endregion
+        private readonly CommandService _commands;
+        private ServiceProvider? _serviceProvider;
 
         #region ctor
         public DiscordBot()
@@ -33,18 +31,22 @@ namespace EOSC.Bot.Classes
                 .AddUserSecrets(Assembly.GetExecutingAssembly())
                 .Build();
             discordToken = _configuration["DiscordToken"] ?? throw new Exception("Missing Discord token");
+
             _client = new DiscordSocketClient();
-            _client.MessageReceived += _echoCommand.MessageHandler;
+            _client.MessageReceived += HandleCommandAsync;
+
+            _commands = new CommandService();
         }
         #endregion
 
-        public async Task StartAsync(/*ServiceProvider services*/)
+        public async Task StartAsync(ServiceProvider services)
         {
             await _client.LoginAsync(TokenType.Bot, discordToken);
+            await _commands.AddModulesAsync(Assembly.GetExecutingAssembly(), _serviceProvider);
             await _client.StartAsync();
             _client.Log += LogFuncAsync;
             await Task.Delay(-1);
-            
+
             //Log all events happening to bot
             async Task LogFuncAsync(LogMessage message) =>
                 await Console.Out.WriteLineAsync(message.ToString());
@@ -57,6 +59,27 @@ namespace EOSC.Bot.Classes
             {
                 await _client.LogoutAsync();
                 await _client.StopAsync();
+            }
+        }
+
+        private async Task HandleCommandAsync(SocketMessage arg)
+        {
+            // Ignore messages from bots
+            if (arg is not SocketUserMessage message || message.Author.IsBot)
+            {
+                return;
+            }
+            Console.WriteLine(message);
+
+            // Check if the message starts with !
+            int position = 0;
+            bool messageIsCommand = message.HasCharPrefix('!', ref position);
+
+            if (messageIsCommand)
+            {
+                // Execute the command if it exists in the ServiceCollection
+                await _commands.ExecuteAsync(new SocketCommandContext(_client, message), position, _serviceProvider);
+                return;
             }
         }
     }

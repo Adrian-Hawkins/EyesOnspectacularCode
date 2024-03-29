@@ -9,7 +9,7 @@ namespace EOSC.Bot.Interfaces.Classes
 {
     internal interface IDiscordBot
     {
-        Task StartAsync(/*ServiceProvider services*/);
+        Task StartAsync(ServiceProvider services);
 
         Task StopAsync();
     }
