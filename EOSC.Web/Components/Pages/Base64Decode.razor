@@ -1,0 +1,73 @@
+﻿@page "/base64"
+
+<PageTitle>Base 64 Decode/Encode</PageTitle>
+
+<h1>Base 64 Decode/Encode</h1>
+
+<p role="status"> @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+<div class="input-group">
+    <span class="input-group-text">With textarea</span>
+    <textarea class="form-control" aria-label="With textarea"></textarea>
+</div>
+
+<div class="input-group mb-3">
+    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">@SwapMode</button>
+    <ul class="dropdown-menu">
+
+        <li>
+            <div class="dropdown-item" @onclick="SetToEncode">Encode</div>
+        </li>
+        <li>
+            <div class="dropdown-item" @onclick="SetToDecode">Decode</div>
+        </li>
+    </ul>
+    <textarea class="form-control" aria-label="With textarea"></textarea>
+</div>
+
+<div class="btn-group">
+    <button type="button" class="btn btn-secondary">Reference</button>
+    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" id="dropdownMenuReference" data-bs-toggle="dropdown" aria-expanded="false" data-bs-reference="parent">
+        <span class="visually-hidden">Toggle Dropdown</span>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+        <li>
+            <a class="dropdown-item" href="#">Action</a>
+        </li>
+        <li>
+            <a class="dropdown-item" href="#">Another action</a>
+        </li>
+        <li>
+            <a class="dropdown-item" href="#">Something else here</a>
+        </li>
+        <li>
+            <hr class="dropdown-divider">
+        </li>
+        <li>
+            <a class="dropdown-item" href="#">Separated link</a>
+        </li>
+    </ul>
+</div>
+
+@code {
+    private int currentCount = 0;
+    public string SwapMode { get; set; } = "Encode";
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+
+    private void SetToEncode()
+    {
+        SwapMode = "Encode";
+    }
+
+    private void SetToDecode()
+    {
+        SwapMode = "Decode";
+    }
+
+}
