@@ -5,12 +5,12 @@ namespace EOSC.API.Response;
 public class Base64Response(Base64ServiceResponseCode responseCode = default)
     : BaseResponse<Base64ServiceResponseCode>(responseCode)
 {
-    public Base64Response(string convertedData) : this()
+    public Base64Response(string base64String) : this()
     {
-        ConvertedData = convertedData;
+        Base64String = base64String;
     }
 
-    public string ConvertedData { get; init; } = null!;
+    public string Base64String { get; init; } = null!;
 
     public static implicit operator Base64Response(Base64ServiceResponseCode responseCode) =>
         new(responseCode);

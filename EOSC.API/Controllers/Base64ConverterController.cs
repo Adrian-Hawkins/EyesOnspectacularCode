@@ -31,6 +31,66 @@ public class Base64ConverterController(ILogger<Base64ConverterController> logger
         this.PrepareResponse(service.ConvertFromBase64(request));
 
 
+    [ProducesResponseType(typeof(Base64Response), 200)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [Consumes("multipart/form-data")]
+    [HttpPost("convertToBase64Image", Name = "convertToBase64Image")]
+    public IActionResult ConvertImageToBase64([FromForm] ConvertBase64FileRequest request) =>
+        this.PrepareResponse(service.ConvertImageToBase64(request));
+
+
+    [ProducesResponseType(typeof(File), 200)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [HttpPost("convertBase64ToImage", Name = "convertBase64ToImage")]
+    public IActionResult ConvertBase64ToImage([FromBody] ConvertBase64Request request)
+    {
+        var response = service.ConvertImageFromBase64(request);
+        if (response.IsSuccessful) return File(response.ConvertedData, "image/jpeg");
+        return BadRequest(new ErrorResponse(response.GlobalResponseCode));
+    }
+
+    /*[HttpPost("convertBase64ToImage", Name = "convertBase64ToImage")]
+    public IActionResult GetImageFromBase64([FromBody] JsonElement jsonBody)
+    {
+        if (jsonBody.ValueKind != JsonValueKind.Object)
+        {
+            return BadRequest("JSON body must be an object.");
+        }
+
+        if (!jsonBody.TryGetProperty("data", out JsonElement base64ImageElement))
+        {
+            return BadRequest("JSON object must contain 'base64ImageString' property.");
+        }
+
+        string? base64ImageString = base64ImageElement.GetString();
+
+        if (string.IsNullOrEmpty(base64ImageString))
+        {
+            return BadRequest("Input string cannot be null or empty.");
+        }
+
+        try
+        {
+            // Convert the Base64 image string to bytes
+            // byte[] imageBytes = Convert.FromBase64String(base64ImageString);
+            var convertedData = service.ConvertImageFromBase64(new ConvertBase64Request { Data = base64ImageString })
+                .ConvertedData;
+
+
+            // Return the image bytes
+            return File(convertedData, "image/jpeg");
+        }
+        catch (FormatException)
+        {
+            return BadRequest("Input string is not in valid Base64 format.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while decoding image from Base64.");
+            return StatusCode(500, "An error occurred while decoding image from Base64.");
+        }
+    }*/
+
     /*[HttpGet("toBase64", Name = "toBase64")]
     public IActionResult Get(string input)
     {
