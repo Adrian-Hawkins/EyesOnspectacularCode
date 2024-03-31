@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using EOSC.Bot.Commands;
 using EOSC.Bot.Interfaces.Commands;
 using System.Net.NetworkInformation;
 using EOSC.Bot.Interfaces.Classes;
@@ -41,6 +40,7 @@ namespace EOSC.Bot.Classes
 
         public async Task StartAsync(ServiceProvider services)
         {
+            _serviceProvider = services;
             await _client.LoginAsync(TokenType.Bot, discordToken);
             await _commands.AddModulesAsync(Assembly.GetExecutingAssembly(), _serviceProvider);
             await _client.StartAsync();
@@ -69,7 +69,7 @@ namespace EOSC.Bot.Classes
             {
                 return;
             }
-            Console.WriteLine(message);
+            Console.WriteLine(message.Content);
 
             // Check if the message starts with !
             int position = 0;
