@@ -1,8 +1,8 @@
 ﻿using System.Text;
-using EOSC.API.Response;
+using EOSC.API.Response.base64;
 using EOSC.API.ServiceObject;
 
-namespace EOSC.API.Service;
+namespace EOSC.API.Service.base64;
 
 public class Base64Service : IBase64Service
 {

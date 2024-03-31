@@ -1,4 +1,4 @@
-using EOSC.API.Service;
+using EOSC.API.Service.base64;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);

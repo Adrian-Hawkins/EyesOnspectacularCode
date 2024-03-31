@@ -1,6 +1,6 @@
 ﻿using EOSC.Common.Constant;
 
-namespace EOSC.API.Response;
+namespace EOSC.API.Response.base64;
 
 public enum Base64ServiceResponseCode
 {

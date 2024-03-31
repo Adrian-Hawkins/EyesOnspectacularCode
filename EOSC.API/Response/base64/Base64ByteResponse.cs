@@ -1,6 +1,6 @@
 ﻿using EOSC.API.SharedResponse;
 
-namespace EOSC.API.Response;
+namespace EOSC.API.Response.base64;
 
 public class Base64ByteResponse(Base64ServiceResponseCode responseCode = default)
     : BaseResponse<Base64ServiceResponseCode>(responseCode)

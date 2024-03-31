@@ -3,7 +3,7 @@
 GET {{EOSC.API_HostAddress}}/weatherforecast/
 Accept: application/json
 
-###
+### Upload a base image data
 POST {{EOSC.API_HostAddress}}/Base64Converter/convertBase64ToImage
 Content-Type: application/json
 
