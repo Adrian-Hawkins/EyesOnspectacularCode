@@ -1,18 +1,14 @@
 ﻿using System.Text;
 using EOSC.API.Response.base64;
 using EOSC.API.ServiceObject;
+using EOSC.API.SharedResponse;
 
 namespace EOSC.API.Service.base64;
 
 public class Base64Service : IBase64Service
 {
-    /// <summary>
-    /// Converts the given data to a Base64 encoded string.
-    /// </summary>
-    /// <param name="request">The request object containing the data to be converted.</param>
-    /// <returns>A Base64Response object containing the converted data.</returns>
-    public Base64Response ConvertToBase64(ConvertBase64Request request) =>
-        new(base64String: Convert.ToBase64String(Encoding.UTF8.GetBytes(request.Data)));
+    public ValueResponse<string, Base64ServiceResponseCode> ConvertToBase64(ConvertBase64Request request) =>
+        new(value: Convert.ToBase64String(Encoding.UTF8.GetBytes(request.Data)));
 
     /// <summary>
     /// Converts a base64 string to its corresponding value.
@@ -34,10 +30,7 @@ public class Base64Service : IBase64Service
             return Base64ServiceResponseCode.InvalidBase64;
         }
 
-        return new Base64Response
-        {
-            Base64String = Encoding.UTF8.GetString(buffer)
-        };
+        return new Base64Response(request.Data);
     }
 
     public Base64Response ConvertImageToBase64(ConvertBase64FileRequest request)

@@ -10,11 +10,11 @@ namespace EOSC.API.Controllers;
 [Route("[controller]")]
 public class CurlConverterController : ControllerBase
 {
-    private readonly ILogger<WeatherForecastController> _logger;
+    private readonly ILogger<CurlConverterController> _logger;
     private readonly HttpClient _client;
 
 
-    public CurlConverterController(ILogger<WeatherForecastController> logger)
+    public CurlConverterController(ILogger<CurlConverterController> logger)
     {
         _logger = logger;
         _client = new HttpClient();

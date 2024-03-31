@@ -20,7 +20,8 @@ namespace EOSC.API.Controllers;
 public class Base64ConverterController(ILogger<Base64ConverterController> logger, IBase64Service service)
     : ControllerBase
 {
-    [ProducesResponseType(typeof(Base64Response), 200)]
+    // [ProducesResponseType(typeof(Base64Response), 200)]
+    [ProducesResponseType(typeof(ValueResponse<string, Base64ServiceResponseCode>), 200)]
     [ProducesResponseType(typeof(ErrorResponse), 400)]
     [HttpPost("convertToBase64", Name = "convertToBase64")]
     public IActionResult ConvertToBase64([FromBody] ConvertBase64Request request) =>
