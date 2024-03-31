@@ -30,10 +30,12 @@ namespace EOSC.Bot.Classes
                 .AddUserSecrets(Assembly.GetExecutingAssembly())
                 .Build();
             discordToken = _configuration["DiscordToken"] ?? throw new Exception("Missing Discord token");
-
-            _client = new DiscordSocketClient();
+            var config = new DiscordSocketConfig
+            {
+                GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
+            };
+            _client = new DiscordSocketClient(config);
             _client.MessageReceived += HandleCommandAsync;
-
             _commands = new CommandService();
         }
         #endregion
@@ -69,11 +71,11 @@ namespace EOSC.Bot.Classes
             {
                 return;
             }
-            Console.WriteLine(message.Content);
 
             // Check if the message starts with !
             int position = 0;
             bool messageIsCommand = message.HasCharPrefix('!', ref position);
+            Console.Write(arg.Content);
 
             if (messageIsCommand)
             {
