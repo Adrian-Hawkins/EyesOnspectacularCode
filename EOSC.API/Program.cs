@@ -36,7 +36,8 @@ builder.Services.AddSingleton<IBase64Service, Base64Service>();
 
 builder.Services.AddAuthentication(options =>
 {
-    options. 
+    options.DefaultAuthenticateScheme = "Bearer";
+    options.DefaultChallengeScheme = "Bearer";
 });
 
 var app = builder.Build();
