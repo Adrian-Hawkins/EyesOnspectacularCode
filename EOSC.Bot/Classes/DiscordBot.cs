@@ -29,7 +29,8 @@ namespace EOSC.Bot.Classes
             _configuration = new ConfigurationBuilder()
                 .AddUserSecrets(Assembly.GetExecutingAssembly())
                 .Build();
-            discordToken = _configuration["DiscordToken"] ?? throw new Exception("Missing Discord token");
+            //discordToken = _configuration["DiscordToken"] ?? throw new Exception("Missing Discord token");
+            discordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN") ?? throw new Exception("Missing Discord token");
             DiscordSocketConfig config = new DiscordSocketConfig
             {
                 GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
