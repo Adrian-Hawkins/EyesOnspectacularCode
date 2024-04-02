@@ -1,3 +1,4 @@
+using EOSC.API.Auth;
 using EOSC.API.Service.base64;
 using Microsoft.OpenApi.Models;
 
@@ -7,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options => { options.SuppressMapClientErrors = true; });
+
+//builder.Services.AddAuthentication().Add
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -20,7 +23,7 @@ builder.Services.AddSwaggerGen(options =>
             Type = ReferenceType.SecurityScheme,
             Id = "Bearer"
         },
-        Type = SecuritySchemeType.Http,
+        Type = SecuritySchemeType.ApiKey,
         Scheme = "oauth2",
         Name = "Bearer",
         In = ParameterLocation.Header
@@ -34,11 +37,17 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddSingleton<IBase64Service, Base64Service>();
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = "Bearer";
-    options.DefaultChallengeScheme = "Bearer";
-});
+//builder.Services.AddAuthentication(options =>
+//{
+//    options.DefaultAuthenticateScheme = "Bearer";
+//    options.DefaultChallengeScheme = "Bearer";
+//});
+
+builder.Services.AddTransient<IApiKeyValidation, ApiKeyValidation>();
+
+builder.Services.AddScoped<ApiKeyAuthFilter>();
+
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
@@ -58,7 +67,7 @@ app.UseAuthorization();
 // });
 
 
-app.UseAuthentication();
+//app.UseAuthentication();
 
 
 app.MapControllers();

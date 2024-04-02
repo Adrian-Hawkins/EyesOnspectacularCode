@@ -11,5 +11,6 @@ public static class ControllerBaseExtensions
         return response.IsSuccessful
             ? controller.Ok(response)
             : controller.BadRequest(new ErrorResponse(response.GlobalResponseCode));
+        //controller.File()
     }
 }
