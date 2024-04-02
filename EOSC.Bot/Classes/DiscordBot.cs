@@ -30,7 +30,7 @@ namespace EOSC.Bot.Classes
                 .AddUserSecrets(Assembly.GetExecutingAssembly())
                 .Build();
             discordToken = _configuration["DiscordToken"] ?? throw new Exception("Missing Discord token");
-            var config = new DiscordSocketConfig
+            DiscordSocketConfig config = new DiscordSocketConfig
             {
                 GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
             };
@@ -75,7 +75,6 @@ namespace EOSC.Bot.Classes
             // Check if the message starts with !
             int position = 0;
             bool messageIsCommand = message.HasCharPrefix('!', ref position);
-            Console.Write(arg.Content);
 
             if (messageIsCommand)
             {

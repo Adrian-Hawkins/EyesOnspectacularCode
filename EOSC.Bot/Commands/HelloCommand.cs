@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using Discord.WebSocket;
 
 namespace EOSC.Bot.Commands
 {
@@ -7,7 +8,7 @@ namespace EOSC.Bot.Commands
         [Command("hello")]
         public async Task ExecuteAsync()
         {
-            var user = Context.User;
+            SocketUser user = Context.User;
             await ReplyAsync($"Hello {user.Mention}!");
         }
     }
