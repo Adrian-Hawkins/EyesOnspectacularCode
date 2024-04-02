@@ -13,7 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     // TODO: Add support for Github Tokens
-    var openApiSecurityScheme = new OpenApiSecurityScheme
+    OpenApiSecurityScheme openApiSecurityScheme = new OpenApiSecurityScheme
     {
         Reference = new OpenApiReference
         {
@@ -34,6 +34,11 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddSingleton<IBase64Service, Base64Service>();
 
+builder.Services.AddAuthentication(options =>
+{
+    options. 
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -44,6 +49,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthorization();
+
+// services.AddAuthentication(options => 
+// {
+// options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+// options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+// });
+
+
+app.UseAuthentication();
+
 
 app.MapControllers();
 

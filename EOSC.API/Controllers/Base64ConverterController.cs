@@ -9,6 +9,7 @@ using EOSC.API.Service;
 using EOSC.API.Service.base64;
 using EOSC.API.ServiceObject;
 using EOSC.API.SharedResponse;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
@@ -17,6 +18,7 @@ namespace EOSC.API.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class Base64ConverterController(ILogger<Base64ConverterController> logger, IBase64Service service)
     : ControllerBase
 {
@@ -30,8 +32,10 @@ public class Base64ConverterController(ILogger<Base64ConverterController> logger
     [ProducesResponseType(typeof(Base64Response), 200)]
     [ProducesResponseType(typeof(ErrorResponse), 400)]
     [HttpPost("convertFromBase64", Name = "convertFromBase64")]
-    public IActionResult ConvertFromBase64([FromBody] ConvertBase64Request request) =>
-        this.PrepareResponse(service.ConvertFromBase64(request));
+    public IActionResult ConvertFromBase64([FromBody] ConvertBase64Request request)
+    {
+        return this.PrepareResponse(service.ConvertFromBase64(request));
+    }
 
 
     [ProducesResponseType(typeof(Base64Response), 200)]
