@@ -1,3 +1,5 @@
+using EOSC.API.Repo;
+using EOSC.API.Service;
 using EOSC.API.Service.base64;
 using Microsoft.OpenApi.Models;
 
@@ -39,6 +41,12 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = "Bearer";
     options.DefaultChallengeScheme = "Bearer";
 });
+
+// Break if we dont have EOSCDB
+string connectionString = builder.Configuration.GetConnectionString("EOSCDB")!;
+builder.Services.AddSingleton<IHistoryRepo>(new HistoryRepo(connectionString));
+builder.Services.AddSingleton<IHistoryService, HistoryService>();
+
 
 var app = builder.Build();
 
