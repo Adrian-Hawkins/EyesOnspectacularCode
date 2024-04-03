@@ -11,10 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: cd into EOSC.Bot
-      run: cd EOSC.Bot
     - name: Inject Discord Token
       run: |
+        cd EOSC.Bot
         echo "namespace EOSC.Bot;" > secrets.cs
         echo "public static class secrets" >> secrets.cs
         echo "{" >> secrets.cs
@@ -24,6 +23,7 @@ jobs:
       run: docker login -u ${{secrets.DOCKER_USERNAME}} -p ${{secrets.DOCKER_PASSWORD}}
     - name: Build
       run: |
+        cd EOSC.Bot
         docker build --build-arg DISCORD_TOKEN=${{secrets.DISCORD_TOKEN}} -t ${{secrets.DOCKER_USERNAME}}/eoscbot .
         docker push ${{secrets.DOCKER_USERNAME}}/eoscbot:latest
   deploy: 
