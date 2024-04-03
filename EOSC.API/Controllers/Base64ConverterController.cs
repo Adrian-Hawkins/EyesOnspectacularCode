@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using EOSC.API.Auth;
 using EOSC.API.Dto;
 using EOSC.API.Exts;
 using EOSC.API.Response;
@@ -29,7 +28,6 @@ public class Base64ConverterController(ILogger<Base64ConverterController> logger
     [ProducesResponseType(typeof(ValueResponse<string, Base64ServiceResponseCode>), 200)]
     [ProducesResponseType(typeof(ErrorResponse), 400)]
     [HttpPost("convertToBase64", Name = "convertToBase64")]
-    [ApiKey]
     public IActionResult ConvertToBase64([FromBody] ConvertBase64Request request) =>
         this.PrepareResponse(service.ConvertToBase64(request));
 
