@@ -27,6 +27,7 @@ jobs:
         docker build --build-arg DISCORD_TOKEN=${{secrets.DISCORD_TOKEN}} -t ${{secrets.DOCKER_USERNAME}}/eoscbot .
         docker push ${{secrets.DOCKER_USERNAME}}/eoscbot:latest
   deploy: 
+    needs: build
     runs-on: ec2_bot
     steps:
       - name: Prune unused images
