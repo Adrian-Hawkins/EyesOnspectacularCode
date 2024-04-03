@@ -21,7 +21,7 @@ jobs:
       run: docker login -u ${{secrets.DOCKER_USERNAME}} -p ${{secrets.DOCKER_PASSWORD}}
     - name: Build
       run: |
-        cd EOSC.api
+        cd EOSC.API
         docker build -t ${{secrets.DOCKER_USERNAME}}/eoscapi .
         docker push ${{secrets.DOCKER_USERNAME}}/eoscapi:latest
   deploy_api: 
