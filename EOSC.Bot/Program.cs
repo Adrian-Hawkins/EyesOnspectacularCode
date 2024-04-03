@@ -10,11 +10,7 @@ namespace EOSC.Bot
     {
         static async Task Main(string[] args)
         {
-            IConfigurationRoot configuration = new ConfigurationBuilder()
-                .AddUserSecrets(Assembly.GetExecutingAssembly())
-                .Build();
             ServiceProvider serviceProvider = new ServiceCollection()
-                .AddSingleton<IConfiguration>(configuration)
                 .AddScoped<IDiscordBot, DiscordBot>()
                 .BuildServiceProvider();
             try
