@@ -1,20 +1,14 @@
-using EOSC.API.Auth;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 
-public class ApiKeyAuthFilter : IAuthorizationFilter
+namespace EOSC.API.Auth;
+
+public class ApiKeyAuthFilter(IApiKeyValidation apiKeyValidation) : IAuthorizationFilter
 {
-    private readonly IApiKeyValidation _apiKeyValidation;
-
-    public ApiKeyAuthFilter(IApiKeyValidation apiKeyValidation)
-    {
-        _apiKeyValidation = apiKeyValidation;
-    }
-
     public void OnAuthorization(AuthorizationFilterContext context)
     {
-        var ApiKeyHeaderName = "key";
-        string userApiKey = context.HttpContext.Request.Headers[ApiKeyHeaderName].ToString();
+        const string apiKeyHeaderName = "key";
+        string userApiKey = context.HttpContext.Request.Headers[apiKeyHeaderName].ToString();
 
         if (string.IsNullOrWhiteSpace(userApiKey))
         {
@@ -22,8 +16,7 @@ public class ApiKeyAuthFilter : IAuthorizationFilter
             return;
         }
 
-        if (!_apiKeyValidation.IsValidApiKey(userApiKey))
+        if (!apiKeyValidation.IsValidApiKey(userApiKey))
             context.Result = new UnauthorizedResult();
     }
 }
-
