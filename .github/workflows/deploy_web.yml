@@ -1,17 +1,11 @@
 name: Deploy web
 
-# on:
-#   pull_request:
-#     types:
-#       - closed
-#     branches: 
-#       - main
-
 on:
-    push:
-      branches: [ "feature/SPEC-14-host-web" ]
-    pull_request:
-      branches: [ "feature/SPEC-14-host-web" ]
+  pull_request:
+    types:
+      - closed
+    branches: 
+      - main
 
 jobs:
   build_web:
