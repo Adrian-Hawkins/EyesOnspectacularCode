@@ -9,7 +9,7 @@ namespace EOSC.Bot.Commands
         public async Task ExecuteAsync()
         {
             SocketUser user = Context.User;
-            await ReplyAsync($"Hello {user.Mention}!");
+            await ReplyAsync($"Hello there {user.Mention}!");
         }
     }
 }

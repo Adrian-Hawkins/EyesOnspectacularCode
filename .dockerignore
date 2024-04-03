@@ -28,6 +28,3 @@ README.md
 !.git/config
 !.git/packed-refs
 !.git/refs/heads/**
-obj
-out
-bin

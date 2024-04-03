@@ -13,13 +13,23 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: cd into EOSC.Bot
-      run: cd EOSC.Bot
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.200
+    - name: Inject Discord Token
+      run: |
+        cd EOSC.Bot
+        echo "namespace EOSC.Bot;" > secrets.cs
+        echo "public static class secrets" >> secrets.cs
+        echo "{" >> secrets.cs
+        echo "    public static readonly string DiscordToken = \"${{secrets.DISCORD_TOKEN}}\";" >> secrets.cs
+        echo "}" >> secrets.cs
     - name: Restore dependencies
-      run: dotnet restore
+      run: |
+        cd EOSC.Bot
+        dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: |
+        cd EOSC.Bot
+        dotnet build --no-restore
