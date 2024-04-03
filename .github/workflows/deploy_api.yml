@@ -1,16 +1,11 @@
 name: Deploy API
 
-# on:
-#   pull_request:
-#     types:
-#       - closed
-#     branches: 
-#       - main
 on:
-    push:
-      branches: [ "feature/SPEC-13-host-api" ]
-    pull_request:
-      branches: [ "feature/SPEC-13-host-api" ]
+  pull_request:
+    types:
+      - closed
+    branches: 
+      - main
 
 jobs:
   build_api:

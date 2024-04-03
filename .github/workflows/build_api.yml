@@ -2,9 +2,9 @@ name: Build api
 
 on:
   push:
-    branches: [ "feature/SPEC-13-host-api" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "feature/SPEC-13-host-api" ]
+    branches: [ "main" ]
 
 jobs:
   build_api:
