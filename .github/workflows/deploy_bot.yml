@@ -1,10 +1,11 @@
 name: Build Bot
 
 on:
-  push:
-    branches: [ "feature/SPEC-7-host-bot" ]
   pull_request:
-    branches: [ "feature/SPEC-7-host-bot" ]
+    types:
+      - closed
+    branches: 
+      - main
 
 jobs:
   build:
