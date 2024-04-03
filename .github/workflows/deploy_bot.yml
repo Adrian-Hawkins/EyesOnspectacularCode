@@ -36,4 +36,4 @@ jobs:
       - name: Delete old container
         run: sudo docker rm -f eosc-bot-container
       - name: Run container
-        run: sudo docker run -d --name eosc-bot-container ${{secrets.DOCKER_USERNAME}}/beanstest:latest
+        run: sudo docker run -d --name eosc-bot-container ${{secrets.DOCKER_USERNAME}}/eoscbot:latest
