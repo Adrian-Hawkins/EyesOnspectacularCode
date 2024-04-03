@@ -1,9 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Text;
-using System.Text.Json;
 using EOSC.API.Service.base64;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,16 +36,6 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddSingleton<IBase64Service, Base64Service>();
 
-
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultAuthenticateScheme = "Bearer";
-//    options.DefaultChallengeScheme = "Bearer";
-//});
-
-// builder.Services.AddTransient<IApiKeyValidation, ApiKeyValidation>();
-// builder.Services.AddScoped<ApiKeyAuthFilter>();
-
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
@@ -67,32 +52,26 @@ app.UseAuthorization();
 app.Use(async (context, next) =>
 {
     var authHeader = context.Request.Headers.TryGetValue("Authorization", out var authHeaderValue);
-    //todo: un-auth:
-    if (authHeader)
+    
+    if (!authHeader)
     {
+        //todo: un-auth: 
     }
-
+    
     // Remove the 'Bearer ' if it exists.
     var token = authHeaderValue.ToString()["Bearer ".Length..].Trim();
 
-    var tokenHandler = new JwtSecurityTokenHandler();
+    if (token.Equals("test token"))
+    {
+        await next.Invoke();
+    }
+    
+    // var tokenHandler = new JwtSecurityTokenHandler();
     // var key = Encoding.ASCII.GetBytes(JwtSecretKey);
 
     // Do work that can write to the Response.
-    await next.Invoke();
     // Do logging or other work that doesn't write to the Response.
 });
-
-
-// services.AddAuthentication(options => 
-// {
-// options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-// options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-// });
-
-
-//app.UseAuthentication();
-
 
 app.MapControllers();
 
