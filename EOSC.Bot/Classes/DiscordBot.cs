@@ -26,8 +26,7 @@ namespace EOSC.Bot.Classes
         #region ctor
         public DiscordBot()
         {
-            //discordToken = _configuration["DiscordToken"] ?? throw new Exception("Missing Discord token");
-            discordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN") ?? throw new Exception("Missing Discord token");
+            discordToken = secrets.DiscordToken ?? throw new Exception("Missing Discord token");
             DiscordSocketConfig config = new DiscordSocketConfig
             {
                 GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
