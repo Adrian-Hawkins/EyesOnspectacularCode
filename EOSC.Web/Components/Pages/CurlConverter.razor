@@ -1,10 +1,11 @@
 @page "/curl"
 @using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue
 @inject HttpClient HttpClient
+@using System.Text;
 
 <PageTitle>Curl Conversion</PageTitle>
 
-<h1>Curl Conversion Tools</h1>
+<h1>Curl Conversion Tool</h1>
 
 @*
 <p role="status"> @currentCount</p>
@@ -27,13 +28,13 @@
             <div class="dropdown-item" @onclick="SetToPython">Python</div>
         </li>
     </ul>
-    <textarea class="form-control" aria-label="With textarea"></textarea>
+    <textarea class="form-control" aria-label="With textarea" @bind="Command"></textarea>
     <button class="btn btn-primary" @onclick="MakeHttpRequest">Convert</button>
 </div>
 
 <div class="border border-primary rounded" style="width:100%">
 
-    <code>@_responseMessage</code>
+    <pre><code class="language-java">@(new MarkupString(_responseMessage))</code></pre>
 
 </div>
 
@@ -66,6 +67,8 @@
     private string? _responseMessage;
     private string SwapMode { get; set; } = "Rust";
 
+    private string Command { get; set; }="";
+
     private void SetToRust()
     {
         SwapMode = "Rust";
@@ -87,17 +90,27 @@
         try
         {
             var request = new HttpRequestMessage(HttpMethod.Post, "https://curlconv.netlify.app/convert");
-            // TODO: pull this data from req.
-            request.Content = new StringContent("{\n          \"language\": \"Java\",\n          \"command\": \"curl -X POST https://google.com/\"\n        }");
-            request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
+            string requestBody = $@"{{
+                                        ""language"": ""{SwapMode}"",
+                                        ""command"": ""{Command}""
+                                    }}";
+            //request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
             var response = await HttpClient.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
                 var data = await response.Content.ReadAsStringAsync();
-                string [] dataArr = data.Split('[');
-                _responseMessage = dataArr[1];
+                string htmlFormatted = data
+                                        .Split('[')                                    // Split the string by '['
+                                        .Skip(1)                                       // Skip the first element
+                                        .First()                                        // Select the first element
+                                        .Replace("\",", "")                              
+                                        .Trim('[', ']', '"')                            // Trim '[' and ']' characters
+                                        .Trim()                                        // Trim leading and trailing whitespace
+                                        .Replace("\\n", "<br>");                       // Replace "\n" with "<br>"
+                _responseMessage = htmlFormatted;
+                //_responseMessage = dataArr[1];
                 //Console.WriteLine("Received Data : "+dataArray.split("\"")[1]);
             }
             else

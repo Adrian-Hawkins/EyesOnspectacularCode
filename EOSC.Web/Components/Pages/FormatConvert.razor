@@ -1,0 +1,144 @@
+@page "/serialise"
+@using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue
+@inject HttpClient HttpClient
+@using System.Text;
+@using System.IO
+@using System.Xml
+
+<PageTitle>Formatting Tool</PageTitle>
+
+<h1>Formatting Tool</h1>
+
+<div class="container px-1 py-1  border border-primary rounded" style="height:100%;width:100%;">
+  <div class="row gx-1" style="height:100%">
+    <div class="col" style="height:100%;width: 45%;">
+     <div class="p-3 border bg-light rounded" style="height:100%">
+        <textarea class="form-control bg-light" style="width: 100%; height:90%;border: none;overflow: auto;" aria-label="With textarea" placeholder="Paste text..." @bind="InputText"></textarea>
+        <div class="" style="height:10%">
+            <button class="btn btn-outline-secondary dropdown-toggle btn-m px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false">@SwapMode</button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <div class="dropdown-item" @onclick="SetToJSON">JSON</div>
+                    </li>
+                    <li>
+                        <div class="dropdown-item" @onclick="SetToXML">XML</div>
+                    </li>
+                    <li>
+                        <div class="dropdown-item" @onclick="SetToHTML">HTML</div>
+                    </li>
+                </ul>
+            <button class="btn btn-primary" @onclick="formatText">Convert</button>
+        </div>
+     </div>
+    </div>
+    <div class="col" style="height:100%;width: 45%;">
+      <div class="p-3 border bg-light rounded" style="height:100%;width:100%">
+        <pre style="height:100%;width:100%;overflow: scroll;"><code class="language-java" style="height: 100%;width: 100%;">@_responseMessage</code></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+@code {
+    private string? _responseMessage;
+    private string SwapMode { get; set; } = "JSON";
+
+    private string Command { get; set; }="";
+    private string InputText { get; set; }="";
+    private void SetToJSON()
+    {
+        SwapMode = "JSON";
+    }
+
+    private void SetToXML()
+    {
+        SwapMode = "XML";
+    }
+
+    private void SetToHTML()
+    {
+        SwapMode = "HTML";
+    }
+
+
+    private async Task MakeHttpRequest()
+    {
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://curlconv.netlify.app/convert");
+            string requestBody = $@"{{
+                                        ""language"": ""{SwapMode}"",
+                                        ""command"": ""{Command}""
+                                    }}";
+            //request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+            var response = await HttpClient.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var data = await response.Content.ReadAsStringAsync();
+                
+                //_responseMessage = dataArr[1];
+                //Console.WriteLine("Received Data : "+dataArray.split("\"")[1]);
+            }
+            else
+            {
+                _responseMessage = "Error: " + response.ReasonPhrase;
+            }
+        }
+        catch (Exception ex)
+        {
+            _responseMessage = "Error: " + ex.Message;
+        }
+    }
+
+    private async Task formatText(){
+
+        switch(SwapMode){
+            case "JSON":
+                break;
+            case "XML":
+                _responseMessage = formatXMl();
+                break;
+            case "HTML":
+                _responseMessage = formatXMl();
+                break;
+
+        }
+        //_responseMessage = formatXMl();
+    }
+
+    private string formatXMl(){
+        XmlDocument xmlDoc = new XmlDocument();
+        xmlDoc.LoadXml(InputText);
+
+        string formattedXml;
+        
+        using (StringWriter stringWriter = new StringWriter())
+        {
+            try{
+                XmlWriterSettings settings = new XmlWriterSettings
+                {
+                    Indent = true,
+                    IndentChars = "  ", // You can adjust the indentation characters as needed
+                    NewLineChars = "\r\n",
+                    NewLineHandling = NewLineHandling.Replace
+                };
+
+                using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, settings))
+                {
+                    xmlDoc.WriteTo(xmlWriter);
+                }
+
+                formattedXml = stringWriter.ToString();
+            }catch (Exception ex){
+                formattedXml = "Error: " + ex.Message;
+            }
+        }
+        return formattedXml;
+    }
+
+
+}
