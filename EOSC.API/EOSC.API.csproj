@@ -15,11 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EOSC.Common\EOSC.Common.csproj" />
+    <Folder Include="Response\format\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Response\format\" />
+    <ProjectReference Include="..\EOSC.Common\EOSC.Common.csproj" />
   </ItemGroup>
 
 </Project>
