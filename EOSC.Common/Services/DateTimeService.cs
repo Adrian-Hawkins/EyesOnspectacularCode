@@ -11,9 +11,10 @@ namespace EOSC.Common.Services
         private readonly HttpClient _httpClient;
         private readonly string _apiBaseUrl;
 
-        public DateTimeService(string apiBaseUrl)
+        public DateTimeService()
         {
-            _apiBaseUrl = apiBaseUrl;
+            //grab from env
+            _apiBaseUrl = "http://localhost:5168";
             _httpClient = new HttpClient();
         }
 

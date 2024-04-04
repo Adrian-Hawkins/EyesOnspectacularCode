@@ -16,8 +16,7 @@ namespace EOSC.Bot.Commands
 
         public DateTimeCommand()
         {
-            //grab from env later
-            _conversionService = new DateTimeService("http://localhost:5168");
+            _conversionService = new DateTimeService();
         }
 
         [Command("convertdatetime")]
