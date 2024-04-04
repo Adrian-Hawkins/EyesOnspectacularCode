@@ -1,16 +1,27 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using EOSC.API.Infra;
+using EOSC.API.Service.github_auth;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EOSC.API.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class AuthController : ControllerBase
+public class AuthController(
+    IGitHubAuth gitHubAuth,
+    IJwtAuthManager jwtAuthManager) : ControllerBase
 {
-
-    [HttpGet]
-    public IActionResult GetToken()
+    [AllowAnonymous]
+    [HttpPost("login")]
+    public ActionResult Login([FromBody] string request)
     {
+        if (!gitHubAuth.IsValidUser())
+        {
+            return Unauthorized();
+        }
         
-        return Ok();
+        var jwtResult = jwtAuthManager.GenerateTokens(gitHubAuth.GetUserName(), DateTime.Now);
+        
+        return Ok(jwtResult);
     }
 }
