@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-
+using EOSC.Common.Constant;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using EOSC.Bot.Classes;
@@ -10,6 +10,7 @@ namespace EOSC.Bot
     {
         static async Task Main(string[] args)
         {
+            Hello.f();
             ServiceProvider serviceProvider = new ServiceCollection()
                 .AddScoped<IDiscordBot, DiscordBot>()
                 .BuildServiceProvider();
