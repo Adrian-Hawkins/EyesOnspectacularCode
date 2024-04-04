@@ -18,7 +18,7 @@ namespace EOSC.API.Controllers
                 return BadRequest($"Invalid date-time string: {request.dateTimeString}");
             }
             string convertedDateTime = dateTime.ToString(request.desiredFormat, System.Globalization.CultureInfo.InvariantCulture);
-            var response = new DateTimeConversionResponse(convertedDateTime);
+            DateTimeConversionResponse response = new DateTimeConversionResponse(convertedDateTime);
             return Ok(response);
         }
     }
