@@ -1,0 +1,58 @@
+﻿@page "/datetime"
+@using EOSC.Common.Requests
+@using EOSC.Common.Responses
+@using EOSC.Common.Services
+@inject DateTimeService DateTimeService
+
+<h3>Date/Time Conversion</h3>
+
+<div>
+    <label>
+        Date/Time String:
+        <input @bind="dateTimeString" />
+    </label>
+</div>
+
+<div>
+    <label>
+        Original Format:
+        <input @bind="originalFormat" />
+    </label>
+</div>
+
+<div>
+    <label>
+        Desired Format:
+        <input @bind="desiredFormat" />
+    </label>
+</div>
+
+<button @onclick="ConvertDateTime">Convert</button>
+
+@if (!string.IsNullOrEmpty(convertedTime))
+{
+    <div>
+        Converted Time: @convertedTime
+    </div>
+}
+
+@code {
+    private string dateTimeString = "";
+    private string originalFormat = "";
+    private string desiredFormat = "";
+    private string convertedTime = "";
+
+    private async Task ConvertDateTime()
+    {
+        try
+        {
+            var request = new DatetimeRequest(dateTimeString, originalFormat, desiredFormat);
+            var response = await DateTimeService.ConvertDateTime(request);
+            convertedTime = response.ConvertedTime;
+        }
+        catch (Exception ex)
+        {
+            convertedTime = $"Error: {ex.Message}";
+        }
+    }
+}
