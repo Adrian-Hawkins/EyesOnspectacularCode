@@ -1,8 +1,9 @@
 ﻿using EOSC.Common.Requests;
 using EOSC.Common.Responses;
+using Microsoft.Extensions.Configuration;
 using System.Text;
 using System.Text.Json;
-
+using EOSC.Common.Config;
 
 namespace EOSC.Common.Services
 {
@@ -13,8 +14,8 @@ namespace EOSC.Common.Services
 
         public DateTimeService()
         {
-            //grab from env
-            _apiBaseUrl = "http://localhost:5168";
+            IConfigurationRoot config = new ConfigurationBuilder().AddUserSecrets<APIEndpoint>().Build();
+            _apiBaseUrl = config["api:endpoint"] ?? throw new Exception("Please provide api endpoint");
             _httpClient = new HttpClient();
         }
 
