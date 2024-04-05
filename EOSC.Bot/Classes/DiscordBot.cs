@@ -1,47 +1,33 @@
-﻿using System.Net.WebSockets;
+﻿using System.Net.Sockets;
+using System.Net.WebSockets;
 using System.Reflection;
 using System.Text;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
 using EOSC.Bot.Config;
-using EOSC.Bot.Interfaces.Classes;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Linq;
 
 namespace EOSC.Bot.Classes
 {
-    public class DiscordBot : IDiscordBot
+    public class DiscordBot
     {
-        private readonly IConfiguration _configuration;
 
-        private readonly DiscordSocketClient _client;
         private string discordToken;
-
-        private readonly CommandService _commands;
-        private ServiceProvider? _serviceProvider;
+        private ClientWebSocket socket;
 
         #region ctor
 
         public DiscordBot(DiscordToken token)
         {
             discordToken = token.Token;
-            DiscordSocketConfig config = new DiscordSocketConfig
-            {
-                GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
-            };
-            _client = new DiscordSocketClient(config);
-            _client.MessageReceived += HandleCommandAsync;
-            _commands = new CommandService();
+            socket = new ClientWebSocket();
         }
 
         #endregion
 
-        public async Task StartAsync(ServiceProvider services)
+        public async Task StartAsync()
         {
-            string gatewayUrl = "wss://gateway.discord.gg/?v=9&encoding=json"; // Replace with your bot token
+            string gatewayUrl = "wss://gateway.discord.gg/?v=9&encoding=json";
             CancellationTokenSource cts = new CancellationTokenSource();
-            ClientWebSocket socket = new ClientWebSocket();
+
 
             try
             {
@@ -73,41 +59,100 @@ namespace EOSC.Bot.Classes
 
         static async Task ReceiveMessages(ClientWebSocket socket, CancellationToken cancellationToken)
         {
-            byte[] buffer = new byte[1024];
-            while (socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+            try
             {
-                WebSocketReceiveResult result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
-                string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                Console.WriteLine($"Received message: {message}");
+                byte[] buffer = new byte[1024];
+                while (socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+                {
+                    WebSocketReceiveResult result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+                    if (result.MessageType == WebSocketMessageType.Text)
+                    {
+                        string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        Console.WriteLine(GetGuildIdFromJson(message));
+
+                        //await ProcessMessageAsync(" ", socket);
+                        //handle msg here
+                        //await ProcessMessageAsync("fdsgfd", socket);
+                    }
+                    else if (result.MessageType == WebSocketMessageType.Close)
+                    {
+                        await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cancellationToken);
+                    }
+                }
+            }
+            catch (WebSocketException)
+            {
+                // Handle WebSocket exceptions
+            }
+            catch (OperationCanceledException)
+            {
+                // Handle operation cancellation
             }
         }
-        public async Task StopAsync()
+
+        static async Task ProcessMessageAsync(string message, ClientWebSocket socket)
         {
-            if (_client != null)
+            try
             {
-                await _client.LogoutAsync();
-                await _client.StopAsync();
+                // Parse the received JSON data to extract channel_id
+                //JObject jsonData = JObject.Parse(message);
+                //string channelId = jsonData["d"]["channel_id"].ToString();
+                string channelId = "1093446156681490534";
+
+                // Send a message back to the channel
+                await SendMessageAsync(channelId, "Hello from the bot!", socket);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing message: {ex.Message}");
             }
         }
 
-        private async Task HandleCommandAsync(SocketMessage arg)
+        static async Task SendMessageAsync(string channelId, string message, ClientWebSocket socket)
         {
-            // Ignore messages from bots
-            if (arg is not SocketUserMessage message || message.Author.IsBot)
+            try
             {
-                return;
+                // Construct message payload
+
+                string sendMessagePayload = $"{{\"t\": 4, \"op\": 1, \"d\": {{\"content\": \"{message}\", \"tts\":false, \"channel_id\": \"{channelId}\"}}}}";
+                //string sendMessagePayload = "{\"t\": \"MESSAGE_CREATE\",\"op\": 0, \"d\": {\"content\": \"This is a message with components\", \"components\": [{\"type\": 1, \"components\": [{\"type\": 2, \"label\": \"Click me!\", \"style\": 1, \"custom_id\": \"click_one\"}]}]}}";
+                byte[] payloadBytes = Encoding.UTF8.GetBytes(sendMessagePayload);
+
+                // Send message to the channel
+                await socket.SendAsync(new ArraySegment<byte>(payloadBytes), WebSocketMessageType.Text, true, CancellationToken.None);
             }
-
-            // Check if the message starts with !
-            int position = 0;
-            bool messageIsCommand = message.HasCharPrefix('!', ref position);
-
-            if (messageIsCommand)
+            catch (Exception ex)
             {
-                // Execute the command if it exists in the ServiceCollection
-                await _commands.ExecuteAsync(new SocketCommandContext(_client, message), position, _serviceProvider);
-                return;
+                Console.WriteLine($"Error sending message: {ex.Message}");
             }
         }
+        public static string GetGuildIdFromJson(string jsonString)
+        {
+            // Parse the JSON string into a JObject
+            JObject jsonObject = JObject.Parse(jsonString);
+
+            // Check if the "guilds" property exists and it is an array
+            if (jsonObject["d"]?["guilds"] is JArray guildsArray)
+            {
+                // Check if the array is not empty and retrieve the first guild's ID
+                if (guildsArray.Count > 0)
+                {
+                    string guildId = guildsArray[0]?["id"]?.ToString();
+                    return guildId;
+                }
+                else
+                {
+                    Console.WriteLine("No guilds found in the JSON data.");
+                    return null;
+                }
+            }
+            else
+            {
+                Console.WriteLine("No 'guilds' property found in the JSON data.");
+                return null;
+            }
+        }
+
+
     }
 }

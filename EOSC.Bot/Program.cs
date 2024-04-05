@@ -25,25 +25,28 @@ namespace EOSC.Bot
             // Get our discord token from the config.
             var discordToken = configuration.GetSection("Discord").Get<DiscordToken>();
 
-            // TODO: @Adrian: handle this error more gracefully if possible else remove this comment.
-            if (discordToken == null) throw new Exception("Missing Discord token");
+            DiscordBot bot = new DiscordBot(discordToken);
+            await bot.StartAsync();
 
-            // Setup DI with discord token and bot.
-            var serviceProvider = new ServiceCollection()
-                .AddSingleton(discordToken)
-                .AddScoped<IDiscordBot, DiscordBot>()
-                .BuildServiceProvider();
+            //// TODO: @Adrian: handle this error more gracefully if possible else remove this comment.
+            //if (discordToken == null) throw new Exception("Missing Discord token");
+
+            //// Setup DI with discord token and bot.
+            //var serviceProvider = new ServiceCollection()
+            //    .AddSingleton(discordToken)
+            //    .AddScoped<IDiscordBot, DiscordBot>()
+            //    .BuildServiceProvider();
             
-            try
-            {
-                IDiscordBot bot = serviceProvider.GetRequiredService<IDiscordBot>();
-                await bot.StartAsync(serviceProvider);
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine(exception.Message);
-                Environment.Exit(-1);
-            }
+            //try
+            //{
+            //    IDiscordBot bot = serviceProvider.GetRequiredService<IDiscordBot>();
+            //    await bot.StartAsync(serviceProvider);
+            //}
+            //catch (Exception exception)
+            //{
+            //    Console.WriteLine(exception.Message);
+            //    Environment.Exit(-1);
+            //}
         }
     }
 }
