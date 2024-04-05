@@ -2,6 +2,8 @@
 using System.Net.WebSockets;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using EOSC.Bot.Config;
 using Newtonsoft.Json.Linq;
 
@@ -9,7 +11,6 @@ namespace EOSC.Bot.Classes
 {
     public class DiscordBot
     {
-
         private string discordToken;
         private ClientWebSocket socket;
 
@@ -35,12 +36,17 @@ namespace EOSC.Bot.Classes
                 Console.WriteLine("Connected to Discord WebSocket Gateway.");
 
                 // Send identify payload after connection
-                string identifyPayload = $"{{\"op\":2,\"d\":{{\"token\":\"{discordToken}\",\"intents\":513,\"properties\":{{\"$os\":\"linux\",\"$browser\":\"my_library\",\"$device\":\"my_library\"}}}}}}";
+                string identifyPayload =
+                    $"{{\"op\":2,\"d\":{{\"token\":\"{discordToken}\",\"intents\":513,\"properties\":{{\"$os\":\"linux\",\"$browser\":\"my_library\",\"$device\":\"my_library\"}}}}}}";
                 byte[] payloadBytes = Encoding.UTF8.GetBytes(identifyPayload);
-                await socket.SendAsync(new ArraySegment<byte>(payloadBytes), WebSocketMessageType.Text, true, cts.Token);
+                await socket.SendAsync(new ArraySegment<byte>(payloadBytes), WebSocketMessageType.Text, true,
+                    cts.Token);
+
+                // Heartbeat
+                // _ = Task.Run(async () => ));
 
                 // Start listening for incoming messages
-                _ = Task.Run(async () => await ReceiveMessages(socket, cts.Token));
+                _ = Task.Run(async () => await ReceiveMessages(socket, cts.Token), cts.Token);
 
                 // Keep the application running until cancelled
                 await Task.Delay(Timeout.Infinite, cts.Token);
@@ -51,7 +57,7 @@ namespace EOSC.Bot.Classes
             }
             finally
             {
-                if (socket.State == WebSocketState.Open || socket.State == WebSocketState.Connecting)
+                if (socket.State is WebSocketState.Open or WebSocketState.Connecting)
                     await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
                 socket.Dispose();
             }
@@ -61,14 +67,37 @@ namespace EOSC.Bot.Classes
         {
             try
             {
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[1024 * 4];
                 while (socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
                 {
-                    WebSocketReceiveResult result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+                    WebSocketReceiveResult result =
+                        await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
                     if (result.MessageType == WebSocketMessageType.Text)
                     {
                         string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                        Console.WriteLine(message);
+                        var rootObject = JsonSerializer.Deserialize<RootObject>(message);
+                        if (rootObject is { op: 10 })
+                        {
+                            // Console.WriteLine(message);
+                            // int heartbeatInterval = data10.heartbeat_interval;
+                            // TODO: deserilil the data
+                            // var heartbeat = rootObject.d.Deserialize<>();
+                            var heartbeat = rootObject.d.GetProperty("heartbeat_interval").GetInt32();
+                            // Task.
+                            _ = new Timer(
+                                _ =>
+                                {
+                                    // Send the heartbeat to server every x seconds 
+                                    socket.SendAsync(new ArraySegment<byte>("""{"op":1, "d": null}"""u8.ToArray()),
+                                        WebSocketMessageType.Text,
+                                        true, CancellationToken.None);
+                                }, null, 0, heartbeat);
+
+                            Console.WriteLine("Heartbeat Interval: " + heartbeat);
+                        }
+
+                        // Console.WriteLine(message);
+                        // Console.WriteLine(rootObject?.ToString());
 
                         //await ProcessMessageAsync(" ", socket);
                         //handle msg here
@@ -90,11 +119,24 @@ namespace EOSC.Bot.Classes
             }
         }
 
+        public class RootObject
+        {
+            public object T { get; set; }
+            public object S { get; set; }
+            public int op { get; set; }
+            public JsonElement d { get; set; }
+
+            public override string ToString()
+            {
+                return $"Op: {op}, Data: {d}";
+            }
+        }
+
         static async Task ProcessMessageAsync(string message, ClientWebSocket socket)
         {
             try
             {
-                // Parse the received JSON data to extract channel_id
+                /*// Parse the received JSON data to extract channel_id
                 //JObject jsonData = JObject.Parse(message);
                 //string channelId = jsonData["d"]["channel_id"].ToString();
                 //string channelId = "1093446156681490534";
@@ -134,7 +176,7 @@ namespace EOSC.Bot.Classes
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error: {ex.Message}");
-                }
+                }*/
 
                 // Send a message back to the channel
                 //await SendMessageAsync(channelId, "Hello from the bot!", socket);
@@ -151,18 +193,21 @@ namespace EOSC.Bot.Classes
             {
                 // Construct message payload
 
-                string sendMessagePayload = $"{{\"t\": 4, \"op\": 1, \"d\": {{\"content\": \"{message}\", \"tts\":false, \"channel_id\": \"{channelId}\"}}}}";
+                string sendMessagePayload =
+                    $"{{\"t\": 4, \"op\": 1, \"d\": {{\"content\": \"{message}\", \"tts\":false, \"channel_id\": \"{channelId}\"}}}}";
                 //string sendMessagePayload = "{\"t\": \"MESSAGE_CREATE\",\"op\": 0, \"d\": {\"content\": \"This is a message with components\", \"components\": [{\"type\": 1, \"components\": [{\"type\": 2, \"label\": \"Click me!\", \"style\": 1, \"custom_id\": \"click_one\"}]}]}}";
                 byte[] payloadBytes = Encoding.UTF8.GetBytes(sendMessagePayload);
 
                 // Send message to the channel
-                await socket.SendAsync(new ArraySegment<byte>(payloadBytes), WebSocketMessageType.Text, true, CancellationToken.None);
+                await socket.SendAsync(new ArraySegment<byte>(payloadBytes), WebSocketMessageType.Text, true,
+                    CancellationToken.None);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error sending message: {ex.Message}");
             }
         }
+
         public static string GetGuildIdFromJson(string jsonString)
         {
             // Parse the JSON string into a JObject
@@ -189,7 +234,5 @@ namespace EOSC.Bot.Classes
                 return null;
             }
         }
-
-
     }
 }
