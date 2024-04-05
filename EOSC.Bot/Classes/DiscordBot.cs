@@ -1,15 +1,11 @@
 ﻿using System.Reflection;
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using EOSC.Bot.Interfaces.Commands;
-using System.Net.NetworkInformation;
+using EOSC.Bot.Config;
 using EOSC.Bot.Interfaces.Classes;
-using System;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EOSC.Bot.Classes
 {
@@ -24,9 +20,10 @@ namespace EOSC.Bot.Classes
         private ServiceProvider? _serviceProvider;
 
         #region ctor
-        public DiscordBot()
+
+        public DiscordBot(DiscordToken token)
         {
-            discordToken = secrets.DiscordToken ?? throw new Exception("Missing Discord token");
+            discordToken = token.Token;
             DiscordSocketConfig config = new DiscordSocketConfig
             {
                 GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
@@ -35,6 +32,7 @@ namespace EOSC.Bot.Classes
             _client.MessageReceived += HandleCommandAsync;
             _commands = new CommandService();
         }
+
         #endregion
 
         public async Task StartAsync(ServiceProvider services)
@@ -49,7 +47,6 @@ namespace EOSC.Bot.Classes
             //Log all events happening to bot
             async Task LogFuncAsync(LogMessage message) =>
                 await Console.Out.WriteLineAsync(message.ToString());
-                
         }
 
         public async Task StopAsync()

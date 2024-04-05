@@ -1,3 +1,5 @@
+#See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+
 FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
 USER app
 WORKDIR /app
@@ -5,16 +7,16 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["EOSC.Bot.csproj", "./"]
-RUN dotnet restore "EOSC.Bot.csproj"
+COPY ["EOSC.Bot/EOSC.Bot.csproj", "EOSC.Bot/"]
+COPY ["EOSC.Common/EOSC.Common.csproj", "EOSC.Common/"]
+RUN dotnet restore "./EOSC.Bot/EOSC.Bot.csproj"
 COPY . .
-WORKDIR "/src"
-RUN dotnet build "EOSC.Bot.csproj" -c $BUILD_CONFIGURATION -o /app/build
-ENV DISCORD_TOKEN=${DISCORD_TOKEN}
+WORKDIR "/src/EOSC.Bot"
+RUN dotnet build "./EOSC.Bot.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "EOSC.Bot.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./EOSC.Bot.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app

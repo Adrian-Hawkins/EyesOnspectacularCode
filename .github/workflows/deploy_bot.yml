@@ -12,20 +12,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Inject Discord Token
-      run: |
-        cd EOSC.Bot
-        echo "namespace EOSC.Bot;" > secrets.cs
-        echo "public static class secrets" >> secrets.cs
-        echo "{" >> secrets.cs
-        echo "    public static readonly string DiscordToken = \"${{secrets.DISCORD_TOKEN}}\";" >> secrets.cs
-        echo "}" >> secrets.cs
+#    - name: Inject Discord Token
+#      run: |
+#        cd EOSC.Bot
+#        echo "namespace EOSC.Bot;" > secrets.cs
+#        echo "public static class secrets" >> secrets.cs
+#        echo "{" >> secrets.cs
+#        echo "    public static readonly string DiscordToken = \"${{secrets.DISCORD_TOKEN}}\";" >> secrets.cs
+#        echo "}" >> secrets.cs
     - name: Login to dockerhub
       run: docker login -u ${{secrets.DOCKER_USERNAME}} -p ${{secrets.DOCKER_PASSWORD}}
     - name: Build
       run: |
-        cd EOSC.Bot
-        docker build --build-arg DISCORD_TOKEN=${{secrets.DISCORD_TOKEN}} -t ${{secrets.DOCKER_USERNAME}}/eoscbot .
+        docker build -t ${{secrets.DOCKER_USERNAME}}/eoscbot -f EOSC.Bot/Dockerfile .
         docker push ${{secrets.DOCKER_USERNAME}}/eoscbot:latest
   deploy: 
     needs: build
@@ -38,4 +37,4 @@ jobs:
       - name: Delete old container
         run: sudo docker rm -f eosc-bot-container
       - name: Run container
-        run: sudo docker run -d --name eosc-bot-container ${{secrets.DOCKER_USERNAME}}/eoscbot:latest
+        run: sudo docker run -d -e Discord:Token=${{secrets.DISCORD_TOKEN}} --name eosc-bot-container ${{secrets.DOCKER_USERNAME}}/eoscbot:latest
