@@ -68,11 +68,11 @@ namespace EOSC.Bot.Classes
                     if (result.MessageType == WebSocketMessageType.Text)
                     {
                         string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                        Console.WriteLine(GetGuildIdFromJson(message));
+                        Console.WriteLine(message);
 
                         //await ProcessMessageAsync(" ", socket);
                         //handle msg here
-                        //await ProcessMessageAsync("fdsgfd", socket);
+                        await ProcessMessageAsync("fdsgfd", socket);
                     }
                     else if (result.MessageType == WebSocketMessageType.Close)
                     {
@@ -97,10 +97,47 @@ namespace EOSC.Bot.Classes
                 // Parse the received JSON data to extract channel_id
                 //JObject jsonData = JObject.Parse(message);
                 //string channelId = jsonData["d"]["channel_id"].ToString();
-                string channelId = "1093446156681490534";
+                //string channelId = "1093446156681490534";
+                //string url = "https://discordapp.com/api/v9/channels/1093446156681490534/messages";
+                string url = "https://discordapp.com/api/v9/channels/1223250423268249743/messages";
+
+                // Bot token
+                string botToken = "";
+
+                // JSON payload for the POST request (example message content)
+                string jsonPayload = "{\"content\": \"@everyone The bot fucking works without libraries, thank god!\"}";
+
+                // Create a HttpClient instance
+                using var httpClient = new HttpClient();
+
+                // Set the authorization header with the bot token
+                httpClient.DefaultRequestHeaders.Add("Authorization", $"Bot {botToken}");
+
+                // Create the HTTP content from JSON payload
+                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                try
+                {
+                    // Make the POST request
+                    HttpResponseMessage response = await httpClient.PostAsync(url, content);
+
+                    // Check if request was successful
+                    if (response.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine("POST request successful. Message sent.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"POST request failed with status code: {response.StatusCode}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                }
 
                 // Send a message back to the channel
-                await SendMessageAsync(channelId, "Hello from the bot!", socket);
+                //await SendMessageAsync(channelId, "Hello from the bot!", socket);
             }
             catch (Exception ex)
             {
