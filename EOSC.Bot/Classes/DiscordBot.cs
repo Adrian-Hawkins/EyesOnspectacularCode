@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System.Net.WebSockets;
+using System.Reflection;
+using System.Text;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -37,18 +39,48 @@ namespace EOSC.Bot.Classes
 
         public async Task StartAsync(ServiceProvider services)
         {
-            _serviceProvider = services;
-            await _client.LoginAsync(TokenType.Bot, discordToken);
-            await _commands.AddModulesAsync(Assembly.GetExecutingAssembly(), _serviceProvider);
-            await _client.StartAsync();
-            _client.Log += LogFuncAsync;
-            await Task.Delay(-1);
+            string gatewayUrl = "wss://gateway.discord.gg/?v=9&encoding=json"; // Replace with your bot token
+            CancellationTokenSource cts = new CancellationTokenSource();
+            ClientWebSocket socket = new ClientWebSocket();
 
-            //Log all events happening to bot
-            async Task LogFuncAsync(LogMessage message) =>
-                await Console.Out.WriteLineAsync(message.ToString());
+            try
+            {
+                await socket.ConnectAsync(new Uri(gatewayUrl), cts.Token);
+                Console.WriteLine("Connected to Discord WebSocket Gateway.");
+
+                // Send identify payload after connection
+                string identifyPayload = $"{{\"op\":2,\"d\":{{\"token\":\"{discordToken}\",\"intents\":513,\"properties\":{{\"$os\":\"linux\",\"$browser\":\"my_library\",\"$device\":\"my_library\"}}}}}}";
+                byte[] payloadBytes = Encoding.UTF8.GetBytes(identifyPayload);
+                await socket.SendAsync(new ArraySegment<byte>(payloadBytes), WebSocketMessageType.Text, true, cts.Token);
+
+                // Start listening for incoming messages
+                _ = Task.Run(async () => await ReceiveMessages(socket, cts.Token));
+
+                // Keep the application running until cancelled
+                await Task.Delay(Timeout.Infinite, cts.Token);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+            finally
+            {
+                if (socket.State == WebSocketState.Open || socket.State == WebSocketState.Connecting)
+                    await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+                socket.Dispose();
+            }
         }
 
+        static async Task ReceiveMessages(ClientWebSocket socket, CancellationToken cancellationToken)
+        {
+            byte[] buffer = new byte[1024];
+            while (socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+            {
+                WebSocketReceiveResult result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+                string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                Console.WriteLine($"Received message: {message}");
+            }
+        }
         public async Task StopAsync()
         {
             if (_client != null)
