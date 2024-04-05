@@ -18,7 +18,7 @@ using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 namespace EOSC.API.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("/api/[controller]")]
 //[Authorize]
 
 public class Base64ConverterController(ILogger<Base64ConverterController> logger, IBase64Service service)
