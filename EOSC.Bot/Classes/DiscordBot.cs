@@ -18,6 +18,10 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
 
     private readonly Dictionary<string, BaseCommand> _commands = new();
 
+    private Timer _heartbeatTimer;
+    private readonly TimeSpan _heartbeatInterval = TimeSpan.FromSeconds(5);
+
+
     private void LoadCommands()
     {
         var types = Assembly.GetExecutingAssembly().GetTypes();
@@ -69,6 +73,12 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
 
             SendWsMessageAsync(identifyPayload);
             _ = Task.Run(async () => await ReceiveMessages(cts.Token));
+            _heartbeatTimer = new Timer(_ =>
+            {
+                var json = @"{""op"": 1, ""d"": null}";
+                SendWsMessageAsync(json);
+            }, null, TimeSpan.Zero, _heartbeatInterval);
+
             await Task.Delay(Timeout.Infinite, cts.Token);
         }
         catch (Exception ex)
