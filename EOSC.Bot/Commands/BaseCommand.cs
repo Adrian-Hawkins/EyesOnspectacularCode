@@ -6,9 +6,13 @@ using System.Threading.Tasks;
 
 namespace EOSC.Bot.Commands
 {
-    public class BaseCommand
+    public abstract class BaseCommand
     {
-        public async Task SendMessageAsync(string message, string channelId, string botToken)
+        public abstract string GetCommandName();
+
+        public abstract Task SendCommand(string channelId, string botToken);
+
+        protected async Task SendMessageAsync(string message, string channelId, string botToken)
         {
             try
             {
