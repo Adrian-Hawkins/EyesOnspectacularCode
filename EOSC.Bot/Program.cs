@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
 using EOSC.Bot.Classes;
 using EOSC.Bot.Config;
 using EOSC.Bot.Interfaces.Classes;
@@ -19,14 +17,16 @@ namespace EOSC.Bot
 
             var discordToken = configuration.GetSection("Discord").Get<DiscordToken>();
 
-            var serviceProvider = new ServiceCollection()
-                .AddSingleton(discordToken!)
-                .AddScoped<IDiscordBot, DiscordBot>()
-                .BuildServiceProvider();
+            //Microsoft.Extensions.DependencyInjection library :(
+            //var serviceProvider = new ServiceCollection()
+            //    .AddSingleton(discordToken!)
+            //    .AddScoped<IDiscordBot, DiscordBot>()
+            //    .BuildServiceProvider();
 
             try
             {
-                IDiscordBot bot = serviceProvider.GetRequiredService<IDiscordBot>();
+                //IDiscordBot bot = serviceProvider.GetRequiredService<IDiscordBot>();
+                IDiscordBot bot = new DiscordBot(discordToken!);
                 await bot.StartAsync();
             }
             catch (Exception exception)

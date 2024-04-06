@@ -3,7 +3,7 @@ using EOSC.Common.Requests;
 using EOSC.Common.Responses;
 using EOSC.Bot.Attributes;
 using EOSC.Bot.Classes.Deserializers;
-
+using System.Text.RegularExpressions;
 
 namespace EOSC.Bot.Commands
 {
@@ -19,25 +19,24 @@ namespace EOSC.Bot.Commands
 
         public override async Task SendCommand(string botToken, List<string> args, Message message)
         {
-
-
-            if (args.Count() != 3)
+            string content = message.Content;
+            string pattern = @"\((.*?)\)";
+            MatchCollection matches = Regex.Matches(content, pattern);
+            List<string> parsedList = matches.Cast<Match>().Select(m => m.Groups[1].Value).ToList();
+            if (parsedList.Count() != 3)
             {
-                await SendMessageAsync("Usage: !convertdatetime <(dateTimeString)> <(originalFormat)> <(desiredFormat)>", message.ChannelId, botToken);
+                await SendMessageAsync("Usage: !datetime <(dateTimeString)> <(originalFormat)> <(desiredFormat)>", message.ChannelId, botToken);
                 return;
             }
-
-            string dateTimeString = args[0].Replace("(", "").Replace(")", "");
-            string originalFormat = args[1].Replace("(", "").Replace(")", ""); ;
-            string desiredFormat = args[2].Replace("(", "").Replace(")", ""); ;
-
+            string dateTimeString = parsedList[0];
+            string originalFormat = parsedList[1];
+            string desiredFormat = parsedList[2];
             DatetimeRequest request = new DatetimeRequest
             (
                 dateTimeString,
                 originalFormat,
                 desiredFormat
             );
-
             try
             {
                 DateTimeConversionResponse response = await _conversionService.ConvertDateTime(request);
