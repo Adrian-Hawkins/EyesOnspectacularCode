@@ -26,7 +26,7 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
         {
             var attribute = type.GetCustomAttribute<CommandAttribute>();
             var commandInstance = Activator.CreateInstance(type) as BaseCommand;
-            _commands.Add(attribute.CommandName, commandInstance);
+            _commands.Add(attribute!.CommandName, commandInstance!);
         }
         foreach (var kvp in _commands)
         {
