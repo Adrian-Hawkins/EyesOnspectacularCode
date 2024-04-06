@@ -19,7 +19,7 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
     private readonly Dictionary<string, BaseCommand> _commands = new();
 
     private Timer _heartbeatTimer;
-    private readonly TimeSpan _heartbeatInterval = TimeSpan.FromSeconds(5);
+    private readonly TimeSpan _heartbeatInterval = TimeSpan.FromSeconds(30);
 
 
     private void LoadCommands()
