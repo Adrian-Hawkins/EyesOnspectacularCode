@@ -7,10 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EOSC.Bot.Interfaces.Classes
 {
-    internal interface IDiscordBot
+    public interface IDiscordBot
     {
-        Task StartAsync(ServiceProvider services);
-
-        Task StopAsync();
+        Task ReceiveMessages(CancellationToken cancellationToken);
+        Task StartAsync();
     }
 }

@@ -9,35 +9,25 @@ namespace EOSC.Bot
 {
     internal class Program
     {
-        public class DatabaseSettings
-        {
-            public string Host { get; set; }
-        }
-
         static async Task Main(string[] args)
         {
             // Create a config that allows for user secrets(for dev) and environment variables(for prod).
             IConfiguration configuration = new ConfigurationBuilder()
-                .AddUserSecrets<DatabaseSettings>()
+                .AddUserSecrets<DiscordToken>()
                 .AddEnvironmentVariables()
                 .Build();
 
-            // Get our discord token from the config.
             var discordToken = configuration.GetSection("Discord").Get<DiscordToken>();
 
-            // TODO: @Adrian: handle this error more gracefully if possible else remove this comment.
-            if (discordToken == null) throw new Exception("Missing Discord token");
-
-            // Setup DI with discord token and bot.
             var serviceProvider = new ServiceCollection()
-                .AddSingleton(discordToken)
+                .AddSingleton(discordToken!)
                 .AddScoped<IDiscordBot, DiscordBot>()
                 .BuildServiceProvider();
-            
+
             try
             {
                 IDiscordBot bot = serviceProvider.GetRequiredService<IDiscordBot>();
-                await bot.StartAsync(serviceProvider);
+                await bot.StartAsync();
             }
             catch (Exception exception)
             {
