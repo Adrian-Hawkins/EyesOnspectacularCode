@@ -1,14 +1,13 @@
 ﻿using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using EOSC.Bot.Config;
-using EOSC.Bot.Util;
 using EOSC.Bot.Commands;
+using EOSC.Bot.Classes.Deserializers;
 
 namespace EOSC.Bot.Classes;
 
-public class DiscordBot(DiscordToken token)
+public partial class DiscordBot(DiscordToken token)
 {
     private const string GatewayUrl = "wss://gateway.discord.gg/?v=9&encoding=json";
     private readonly string _discordToken = token.Token;
@@ -16,14 +15,16 @@ public class DiscordBot(DiscordToken token)
 
     private readonly Dictionary<string, BaseCommand> _commands = new();
 
-    public HelloCommand helloCommand = new HelloCommand();
+
+    public BaseCommand helloCommand = new HelloCommand();
+    public BaseCommand dtCommand = new DateTimeCommand();
 
 
     public async Task StartAsync()
     {
         CancellationTokenSource cts = new CancellationTokenSource();
-
         _commands.Add(helloCommand.GetCommandName(), helloCommand);
+        _commands.Add(dtCommand.GetCommandName(), dtCommand);
 
 
         try
@@ -68,42 +69,6 @@ public class DiscordBot(DiscordToken token)
                 await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
             _socket.Dispose();
         }
-    }
-
-    /// <summary>
-    /// op integer Gateway opcode, which indicates the payload type
-    /// d? mixed(any JSON value) Event data
-    /// s? integer * Sequence number of event used for resuming sessions and heartbeating
-    /// t?string* Event name
-    /// * s and t are null when op is not 0 (Gateway Dispatch opcode).
-    /// </summary>
-    class BaseMessage
-    {
-        [JsonPropertyName("op")] public int OpCode { get; init; }
-        [JsonPropertyName("d")] public JsonElement? Data { get; init; }
-        [JsonPropertyName("s")] public int? SequenceNumber { get; init; }
-        [JsonPropertyName("t")] public string? EventName { get; init; }
-    }
-
-    class HeartBeat
-    {
-        [JsonPropertyName("heartbeat_interval")]
-        public int HeartbeatInterval { get; init; }
-    }
-
-    class Message
-    {
-        [JsonPropertyName("channel_id")] public required string ChannelId { get; init; }
-        [JsonPropertyName("author")] public required Author Author { get; init; }
-        [JsonPropertyName("content")] public required string Content { get; init; }
-    }
-
-    public class Author
-    {
-        [JsonPropertyName("username")] public required string Username { get; set; }
-        [JsonPropertyName("public_flags")] public required int PublicFlags { get; set; }
-        [JsonPropertyName("id")] public required string Id { get; set; }
-        [JsonPropertyName("global_name")] public required string GlobalName { get; set; }
     }
 
 
@@ -176,7 +141,7 @@ public class DiscordBot(DiscordToken token)
         if (_commands.TryGetValue(command, out var commandHandler))
         {
             //TODO: args need to be parsed in 
-            commandHandler.SendCommand(channelId: message.ChannelId, _discordToken);
+            commandHandler.SendCommand(_discordToken, args, message);
         }
 
         Console.WriteLine($"Command: {command}");

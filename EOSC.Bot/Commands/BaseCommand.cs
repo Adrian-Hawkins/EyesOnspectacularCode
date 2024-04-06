@@ -1,16 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using EOSC.Bot.Attributes;
 using System.Text;
-using System.Threading.Tasks;
+using EOSC.Bot.Classes.Deserializers;
 
 namespace EOSC.Bot.Commands
 {
     public abstract class BaseCommand
     {
-        public abstract string GetCommandName();
+        public string? GetCommandName()
+        {
+            var attribute = Attribute.GetCustomAttribute(this.GetType(), typeof(CommandAttribute)) as CommandAttribute;
+            return attribute?.CommandName;
+        }
 
-        public abstract Task SendCommand(string channelId, string botToken);
+        public abstract Task SendCommand(string botToken, List<string> args, Message message);
+
+
 
         protected async Task SendMessageAsync(string message, string channelId, string botToken)
         {

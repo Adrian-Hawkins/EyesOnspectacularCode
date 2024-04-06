@@ -1,15 +1,13 @@
-﻿namespace EOSC.Bot.Commands
+﻿using EOSC.Bot.Attributes;
+using EOSC.Bot.Classes.Deserializers;
+namespace EOSC.Bot.Commands
 {
+    [Command("hello")]
     public class HelloCommand : BaseCommand
     {
-        public async override Task SendCommand(string channelId, string discordToken)
+        public async override Task SendCommand(string discordToken, List<string> args, Message message)
         {
-            await SendMessageAsync("hello @everyone", channelId, discordToken);
-        }
-
-        public override string GetCommandName()
-        {
-            return "hello";
+            await SendMessageAsync($"hello @{message.Author.GlobalName}", message.ChannelId, discordToken);
         }
     }
 }
