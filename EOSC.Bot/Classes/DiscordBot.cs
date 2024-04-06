@@ -4,10 +4,13 @@ using System.Text.Json;
 using EOSC.Bot.Config;
 using EOSC.Bot.Commands;
 using EOSC.Bot.Classes.Deserializers;
+using System.Reflection;
+using EOSC.Bot.Attributes;
+using EOSC.Bot.Interfaces.Classes;
 
 namespace EOSC.Bot.Classes;
 
-public partial class DiscordBot(DiscordToken token)
+public partial class DiscordBot(DiscordToken token) : IDiscordBot
 {
     private const string GatewayUrl = "wss://gateway.discord.gg/?v=9&encoding=json";
     private readonly string _discordToken = token.Token;
@@ -15,18 +18,27 @@ public partial class DiscordBot(DiscordToken token)
 
     private readonly Dictionary<string, BaseCommand> _commands = new();
 
-
-    public BaseCommand helloCommand = new HelloCommand();
-    public BaseCommand dtCommand = new DateTimeCommand();
+    private void LoadCommands()
+    {
+        var types = Assembly.GetExecutingAssembly().GetTypes();
+        var commandTypes = types.Where(t => t.GetCustomAttribute<CommandAttribute>() != null);
+        foreach (var type in commandTypes)
+        {
+            var attribute = type.GetCustomAttribute<CommandAttribute>();
+            var commandInstance = Activator.CreateInstance(type) as BaseCommand;
+            _commands.Add(attribute.CommandName, commandInstance);
+        }
+        foreach (var kvp in _commands)
+        {
+            Console.WriteLine($"Command: {kvp.Key}, Type: {kvp.Value.GetType().Name}");
+        }
+    }
 
 
     public async Task StartAsync()
     {
         CancellationTokenSource cts = new CancellationTokenSource();
-        _commands.Add(helloCommand.GetCommandName(), helloCommand);
-        _commands.Add(dtCommand.GetCommandName(), dtCommand);
-
-
+        LoadCommands();
         try
         {
             await _socket.ConnectAsync(new Uri(GatewayUrl), cts.Token);
@@ -140,7 +152,6 @@ public partial class DiscordBot(DiscordToken token)
 
         if (_commands.TryGetValue(command, out var commandHandler))
         {
-            //TODO: args need to be parsed in 
             commandHandler.SendCommand(_discordToken, args, message);
         }
 
@@ -160,6 +171,7 @@ public partial class DiscordBot(DiscordToken token)
         _socket.SendAsync(segment, WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
+    //TODO: Remove if unused later
     private void SendWsMessageAsyncType<T>(T data)
     {
         var json = JsonSerializer.Serialize(data);
@@ -169,7 +181,6 @@ public partial class DiscordBot(DiscordToken token)
     private void HandleHeartbeat(BaseMessage baseMessage)
     {
         var heartBeat = baseMessage.Data?.Deserialize<HeartBeat>();
-        Console.WriteLine(heartBeat?.HeartbeatInterval);
         if (heartBeat?.HeartbeatInterval != null)
             _ = new Timer(_ =>
                 {
