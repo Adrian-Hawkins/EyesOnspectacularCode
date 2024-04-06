@@ -1,9 +1,8 @@
-﻿using System.Net.Sockets;
-using System.Net.WebSockets;
-using System.Reflection;
+﻿using System.Net.WebSockets;
 using System.Text;
 using EOSC.Bot.Config;
-using Newtonsoft.Json.Linq;
+using EOSC.Bot.Util;
+using EOSC.Bot.Commands;
 
 namespace EOSC.Bot.Classes
 {
@@ -22,6 +21,10 @@ namespace EOSC.Bot.Classes
         }
 
         #endregion
+        public HelloCommand helloCommand = new HelloCommand();
+        #region commands
+
+        #endregion
 
         public async Task StartAsync()
         {
@@ -33,16 +36,10 @@ namespace EOSC.Bot.Classes
             {
                 await socket.ConnectAsync(new Uri(gatewayUrl), cts.Token);
                 Console.WriteLine("Connected to Discord WebSocket Gateway.");
-
-                // Send identify payload after connection
                 string identifyPayload = $"{{\"op\":2,\"d\":{{\"token\":\"{discordToken}\",\"intents\":513,\"properties\":{{\"$os\":\"linux\",\"$browser\":\"my_library\",\"$device\":\"my_library\"}}}}}}";
                 byte[] payloadBytes = Encoding.UTF8.GetBytes(identifyPayload);
                 await socket.SendAsync(new ArraySegment<byte>(payloadBytes), WebSocketMessageType.Text, true, cts.Token);
-
-                // Start listening for incoming messages
-                _ = Task.Run(async () => await ReceiveMessages(socket, cts.Token));
-
-                // Keep the application running until cancelled
+                _ = Task.Run(async () => await ReceiveMessages(socket, cts.Token, discordToken));
                 await Task.Delay(Timeout.Infinite, cts.Token);
             }
             catch (Exception ex)
@@ -57,7 +54,7 @@ namespace EOSC.Bot.Classes
             }
         }
 
-        static async Task ReceiveMessages(ClientWebSocket socket, CancellationToken cancellationToken)
+        public async Task ReceiveMessages(ClientWebSocket socket, CancellationToken cancellationToken, string _discordToken)
         {
             try
             {
@@ -68,11 +65,47 @@ namespace EOSC.Bot.Classes
                     if (result.MessageType == WebSocketMessageType.Text)
                     {
                         string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                        Console.WriteLine(GetGuildIdFromJson(message));
+                        //Console.WriteLine(message);
+
+                        string channelId = Parser.GetChannelId(message);
+                        string username = Parser.GetUsername(message);
+                        string content = Parser.GetContent(message);
+                        if(channelId != null && username != "" && content != null)
+                        {
+                            Console.WriteLine($"{username} sent {content} in {channelId}");
+                            (string command, string argument) = Parser.ParseCommand(content);
+                            switch(command)
+                            {
+                                case "hello":
+                                    helloCommand.SendCommand(content, channelId, _discordToken);
+                                    break;
+                                default:
+                                    Console.WriteLine("passing");
+                                    break;
+
+                            }
+                        }
+
+                        //// Get the root element
+                        //JsonElement root = doc.RootElement;
+
+                        //// Get the 'd' object
+                        //JsonElement dObject = root.GetProperty("d");
+
+                        //// Check if 'channel_id' exists
+                        //if (dObject.TryGetProperty("channel_id", out JsonElement channelIdElement))
+                        //{
+                        //    string channelId = channelIdElement.GetString();
+                        //    Console.WriteLine($"Channel ID: {channelId}");
+                        //}
+                        //else
+                        //{
+                        //    Console.WriteLine("Channel ID not found.");
+                        //}
 
                         //await ProcessMessageAsync(" ", socket);
                         //handle msg here
-                        //await ProcessMessageAsync("fdsgfd", socket);
+                        //await ProcessMessageAsync("fdsgfd", "d", _discordToken);
                     }
                     else if (result.MessageType == WebSocketMessageType.Close)
                     {
@@ -89,70 +122,6 @@ namespace EOSC.Bot.Classes
                 // Handle operation cancellation
             }
         }
-
-        static async Task ProcessMessageAsync(string message, ClientWebSocket socket)
-        {
-            try
-            {
-                // Parse the received JSON data to extract channel_id
-                //JObject jsonData = JObject.Parse(message);
-                //string channelId = jsonData["d"]["channel_id"].ToString();
-                string channelId = "1093446156681490534";
-
-                // Send a message back to the channel
-                await SendMessageAsync(channelId, "Hello from the bot!", socket);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error processing message: {ex.Message}");
-            }
-        }
-
-        static async Task SendMessageAsync(string channelId, string message, ClientWebSocket socket)
-        {
-            try
-            {
-                // Construct message payload
-
-                string sendMessagePayload = $"{{\"t\": 4, \"op\": 1, \"d\": {{\"content\": \"{message}\", \"tts\":false, \"channel_id\": \"{channelId}\"}}}}";
-                //string sendMessagePayload = "{\"t\": \"MESSAGE_CREATE\",\"op\": 0, \"d\": {\"content\": \"This is a message with components\", \"components\": [{\"type\": 1, \"components\": [{\"type\": 2, \"label\": \"Click me!\", \"style\": 1, \"custom_id\": \"click_one\"}]}]}}";
-                byte[] payloadBytes = Encoding.UTF8.GetBytes(sendMessagePayload);
-
-                // Send message to the channel
-                await socket.SendAsync(new ArraySegment<byte>(payloadBytes), WebSocketMessageType.Text, true, CancellationToken.None);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error sending message: {ex.Message}");
-            }
-        }
-        public static string GetGuildIdFromJson(string jsonString)
-        {
-            // Parse the JSON string into a JObject
-            JObject jsonObject = JObject.Parse(jsonString);
-
-            // Check if the "guilds" property exists and it is an array
-            if (jsonObject["d"]?["guilds"] is JArray guildsArray)
-            {
-                // Check if the array is not empty and retrieve the first guild's ID
-                if (guildsArray.Count > 0)
-                {
-                    string guildId = guildsArray[0]?["id"]?.ToString();
-                    return guildId;
-                }
-                else
-                {
-                    Console.WriteLine("No guilds found in the JSON data.");
-                    return null;
-                }
-            }
-            else
-            {
-                Console.WriteLine("No 'guilds' property found in the JSON data.");
-                return null;
-            }
-        }
-
 
     }
 }

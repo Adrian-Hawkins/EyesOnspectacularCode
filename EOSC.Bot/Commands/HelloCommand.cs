@@ -1,15 +1,10 @@
-﻿using Discord.Commands;
-using Discord.WebSocket;
-
-namespace EOSC.Bot.Commands
+﻿namespace EOSC.Bot.Commands
 {
-    public class HelloCommand : ModuleBase<SocketCommandContext>
+    public class HelloCommand : BaseCommand
     {
-        [Command("hello")]
-        public async Task ExecuteAsync()
+        public async void SendCommand(string content, string channelId, string discordToken)
         {
-            SocketUser user = Context.User;
-            await ReplyAsync($"Hello there {user.Mention}!");
+            await SendMessageAsync("hello @everyone", channelId, discordToken);
         }
     }
 }
