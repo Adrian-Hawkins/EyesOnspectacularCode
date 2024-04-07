@@ -7,6 +7,7 @@ using EOSC.API.Service.github_auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using EOSC.API.Middleware;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -77,11 +78,13 @@ builder.Services.AddSwaggerGen(c =>
 
 // Break if we dont have EOSCDB
 string connectionString = builder.Configuration.GetConnectionString("EOSCDB")!;
-builder.Services.AddSingleton<IHistoryRepo>(new HistoryRepo(connectionString));
+builder.Services.AddSingleton<IHistoryRepo>(new HistoryRepo());
 builder.Services.AddSingleton<IHistoryService, HistoryService>();
 
 
 var app = builder.Build();
+
+app.UseMiddleware<RequestCompletedMiddleware>();
 
 // Configure the HTTP request pipeline.
 // if (app.Environment.IsDevelopment())
