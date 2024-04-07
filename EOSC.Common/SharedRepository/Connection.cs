@@ -1,4 +1,5 @@
 ﻿using EOSC.API.Config;
+using Microsoft.Extensions.Configuration;
 using Npgsql;
 
 namespace EOSC.API.Repo
@@ -12,22 +13,23 @@ namespace EOSC.API.Repo
 
         public static NpgsqlConnection GetConnection()
         {
-            if (_connection == null)
-            {
-                IConfiguration config = new ConfigurationBuilder()
-                 .AddUserSecrets<DB>()
-                 .AddEnvironmentVariables()
-                 .Build();
-                ConnectionString = config["database:connection"] ?? throw new Exception("Please provide database connection string");
-                _connection = new NpgsqlConnection(ConnectionString);
-                _connection.Open();
-            }
-            else if (_connection.State != System.Data.ConnectionState.Open)
-            {
-                _connection.Open();
-            }
+            IConfiguration config = new ConfigurationBuilder()
+                .AddUserSecrets<DB>()
+                .AddEnvironmentVariables()
+                .Build();
+            ConnectionString = config["database:connection"] ?? throw new Exception("Please provide database connection string");
 
-            return _connection;
+            NpgsqlConnection connection = new NpgsqlConnection(ConnectionString);
+            try
+            {
+                connection.Open();
+                return connection;
+            }
+            catch
+            {
+                connection.Dispose();
+                throw;
+            }
         }
 
         public static void CloseConnection()

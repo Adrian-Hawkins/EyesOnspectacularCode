@@ -67,7 +67,7 @@ public class HistoryRepo() : IHistoryRepo
                         string output = reader.GetString(1);
                         DateTime actionDate = reader.GetDateTime(2);
                         string toolName = reader.GetString(3);
-                        history.Add($"Input: {input}, Output: {output}, ToolName: {toolName}, ActionDate: {actionDate}");
+                        history.Add($"Input: {input}, Output: {output}, ActionDate: {actionDate}, ToolName: {toolName}");
                     }
                 }
             }
