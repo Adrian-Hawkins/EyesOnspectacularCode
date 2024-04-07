@@ -2,35 +2,39 @@
 using EOSC.API.Response.base64;
 using EOSC.API.ServiceObject;
 using EOSC.API.SharedResponse;
+using EOSC.Common.Requests;
+using EOSC.Common.Responses;
 
 namespace EOSC.API.Service.base64;
 
 public class Base64Service : IBase64Service
 {
-    public ValueResponse<string, Base64ServiceResponseCode> ConvertToBase64(ConvertBase64Request request) =>
-        new(value: Convert.ToBase64String(Encoding.UTF8.GetBytes(request.Data)));
+    public Base64DecodeResponse
+        ConvertToBase64(Base64DecodeRequest request) =>
+        new(DecodedMessage: Convert.ToBase64String(Encoding.UTF8.GetBytes(request.EncodedMessage)));
+
 
     /// <summary>
     /// Converts a base64 string to its corresponding value.
     /// </summary>
     /// <param name="request">The request object containing the base64 string to convert.</param>
     /// <returns>A Base64Response object containing the converted data.</returns>
-    public Base64Response ConvertFromBase64(ConvertBase64Request request)
+    public Base64EncodeResponse ConvertFromBase64(Base64EncodeRequest request)
     {
-        var b64String = request.Data;
+        var b64String = request.OriginalMessage;
         // Very 'cool' so we need to create a buffer that is big enough to hold the result check out https://en.wikipedia.org/wiki/Base64
         var buffer = new byte[(b64String.Length * 3 + 3) / 4 - (b64String.Length > 0 && b64String[^1] == '='
             ? b64String.Length > 1 && b64String[^2] == '=' ? 2 : 1
             : 0)];
 
-        var tryFromBase64String = Convert.TryFromBase64String(request.Data, buffer, out _);
+        var tryFromBase64String = Convert.TryFromBase64String(request.OriginalMessage, buffer, out _);
         if (!tryFromBase64String)
         {
             // TODO:error
-            return Base64ServiceResponseCode.InvalidBase64;
+            // return Base64ServiceResponseCode.InvalidBase64;
         }
 
-        return new Base64Response(request.Data);
+        return new Base64EncodeResponse(EncodedMessage: Encoding.UTF8.GetString(buffer));
     }
 
     public Base64Response ConvertImageToBase64(ConvertBase64FileRequest request)
@@ -55,15 +59,16 @@ public class Base64Service : IBase64Service
         return response;
     }
 
-    public Base64ByteResponse ConvertImageFromBase64(ConvertBase64Request request)
+
+    public Base64ByteResponse ConvertImageFromBase64(Base64DecodeRequest request)
     {
-        var b64String = request.Data;
+        var b64String = request.EncodedMessage;
         // Very 'cool' so we need to create a buffer that is big enough to hold the result check out https://en.wikipedia.org/wiki/Base64
         var buffer = new byte[(b64String.Length * 3 + 3) / 4 - (b64String.Length > 0 && b64String[^1] == '='
             ? b64String.Length > 1 && b64String[^2] == '=' ? 2 : 1
             : 0)];
 
-        var tryFromBase64String = Convert.TryFromBase64String(request.Data, buffer, out _);
+        var tryFromBase64String = Convert.TryFromBase64String(request.EncodedMessage, buffer, out _);
         return !tryFromBase64String ? Base64ServiceResponseCode.InvalidBase64 : new Base64ByteResponse(buffer);
     }
 }

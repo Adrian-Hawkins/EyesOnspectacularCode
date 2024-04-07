@@ -10,6 +10,8 @@ using EOSC.API.Service.base64;
 using EOSC.API.ServiceObject;
 using EOSC.API.SharedResponse;
 using EOSC.Common.Constant;
+using EOSC.Common.Requests;
+using EOSC.Common.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
@@ -18,25 +20,25 @@ using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 namespace EOSC.API.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("/api")]
 //[Authorize]
-
 public class Base64ConverterController(ILogger<Base64ConverterController> logger, IBase64Service service)
     : ControllerBase
 {
     // [ProducesResponseType(typeof(Base64Response), 200)]
-    [ProducesResponseType(typeof(ValueResponse<string, Base64ServiceResponseCode>), 200)]
+    // [ProducesResponseType(typeof(ValueResponse<string, Base64ServiceResponseCode>), 200)]
+    [ProducesResponseType(typeof(Base64DecodeResponse), 200)]
     [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [HttpPost("convertToBase64", Name = "convertToBase64")]
-    public IActionResult ConvertToBase64([FromBody] ConvertBase64Request request) =>
-        this.PrepareResponse(service.ConvertToBase64(request));
+    [HttpPost("/b64e", Name = "convertToBase64")]
+    public IActionResult ConvertToBase64([FromBody] Base64DecodeRequest request) =>
+        Ok(service.ConvertToBase64(request));
 
     [ProducesResponseType(typeof(Base64Response), 200)]
     [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [HttpPost("convertFromBase64", Name = "convertFromBase64")]
-    public IActionResult ConvertFromBase64([FromBody] ConvertBase64Request request)
+    [HttpPost("/b64d", Name = "convertFromBase64")]
+    public IActionResult ConvertFromBase64([FromBody] Base64EncodeRequest request)
     {
-        return this.PrepareResponse(service.ConvertFromBase64(request));
+        return Ok(service.ConvertFromBase64(request));
     }
 
 
@@ -51,7 +53,7 @@ public class Base64ConverterController(ILogger<Base64ConverterController> logger
     [ProducesResponseType(typeof(File), 200)]
     [ProducesResponseType(typeof(ErrorResponse), 400)]
     [HttpPost("convertBase64ToImage", Name = "convertBase64ToImage")]
-    public IActionResult ConvertBase64ToImage([FromBody] ConvertBase64Request request)
+    public IActionResult ConvertBase64ToImage([FromBody] Base64DecodeRequest request)
     {
         if (!ModelState.IsValid)
         {
