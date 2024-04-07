@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 
-namespace EOSC.API.Repo
+namespace EOSC.Common.SharedRepository
 {
     public class Connection
     {
