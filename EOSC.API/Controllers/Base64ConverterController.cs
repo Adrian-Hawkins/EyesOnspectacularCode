@@ -9,6 +9,7 @@ using EOSC.API.Service;
 using EOSC.API.Service.base64;
 using EOSC.API.ServiceObject;
 using EOSC.API.SharedResponse;
+using EOSC.Common.Constant;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
@@ -18,7 +19,8 @@ namespace EOSC.API.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize]
+//[Authorize]
+
 public class Base64ConverterController(ILogger<Base64ConverterController> logger, IBase64Service service)
     : ControllerBase
 {
@@ -51,6 +53,14 @@ public class Base64ConverterController(ILogger<Base64ConverterController> logger
     [HttpPost("convertBase64ToImage", Name = "convertBase64ToImage")]
     public IActionResult ConvertBase64ToImage([FromBody] ConvertBase64Request request)
     {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            return BadRequest(new ErrorResponse(GlobalResponseCode.InvalidRequest));
+        }
+
         var response = service.ConvertImageFromBase64(request);
         if (response.IsSuccessful) return File(response.ConvertedData, "image/jpeg");
         return BadRequest(new ErrorResponse(response.GlobalResponseCode));

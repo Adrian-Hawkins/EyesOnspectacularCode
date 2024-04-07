@@ -1,0 +1,104 @@
+﻿@page "/base64"
+@using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue
+@inject HttpClient HttpClient
+
+<PageTitle>Base 64 Decode/Encode</PageTitle>
+
+<h1>Base 64 Decode/Encode</h1>
+
+@*
+<p role="status"> @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+*@
+
+<div class="input-group">
+    <span class="input-group-text">With textarea</span>
+    <textarea class="form-control" aria-label="With textarea"></textarea>
+</div>
+
+<div class="input-group mb-3">
+    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">@SwapMode</button>
+    <ul class="dropdown-menu">
+
+        <li>
+            <div class="dropdown-item" @onclick="SetToEncode">Encode</div>
+        </li>
+        <li>
+            <div class="dropdown-item" @onclick="SetToDecode">Decode</div>
+        </li>
+    </ul>
+    <textarea class="form-control" aria-label="With textarea"></textarea>
+</div>
+<button class="btn btn-primary" @onclick="MakeHttpRequest">Click me</button>
+
+<textarea> @_responseMessage </textarea>
+
+@*<div class="btn-group">
+    <button type="button" class="btn btn-secondary">Reference</button>
+    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" id="dropdownMenuReference" data-bs-toggle="dropdown" aria-expanded="false" data-bs-reference="parent">
+        <span class="visually-hidden">Toggle Dropdown</span>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+        <li>
+            <a class="dropdown-item" href="#">Action</a>
+        </li>
+        <li>
+            <a class="dropdown-item" href="#">Another action</a>
+        </li>
+        <li>
+            <a class="dropdown-item" href="#">Something else here</a>
+        </li>
+        <li>
+            <hr class="dropdown-divider">
+        </li>
+        <li>
+            <a class="dropdown-item" href="#">Separated link</a>
+        </li>
+    </ul>
+</div>*@
+
+@code {
+    private string? _responseMessage;
+    private string SwapMode { get; set; } = "Encode";
+
+    private void SetToEncode()
+    {
+        SwapMode = "Encode";
+    }
+
+    private void SetToDecode()
+    {
+        SwapMode = "Decode";
+    }
+
+    private async Task MakeHttpRequest()
+    {
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://curlconv.netlify.app/convert");
+            // TODO: pull this data from req.
+            request.Content = new StringContent("{\n          \"language\": \"Rust\",\n          \"command\": \"curl h\"\n        }");
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            var response = await HttpClient.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var data = await response.Content.ReadAsStringAsync();
+                // Do something with the data to sanitise it a bit ;)
+                _responseMessage = "Data received: " + data;
+            }
+            else
+            {
+                _responseMessage = "Error: " + response.ReasonPhrase;
+            }
+        }
+        catch (Exception ex)
+        {
+            _responseMessage = "Error: " + ex.Message;
+        }
+    }
+
+
+}

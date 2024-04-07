@@ -1,7 +1,13 @@
 using EOSC.API.Repo;
 using EOSC.API.Service;
+using System.Text;
+using EOSC.API.Infra;
 using EOSC.API.Service.base64;
+using EOSC.API.Service.github_auth;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,36 +16,63 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options => { options.SuppressMapClientErrors = true; });
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddSwaggerGen();
+
+var jwtTokenConfig = builder.Configuration.GetSection("jwtTokenConfig").Get<JwtTokenConfig>()!;
+builder.Services.AddSingleton(jwtTokenConfig);
+
+
+builder.Services.AddAuthentication(authenticationOptions =>
 {
-    // TODO: Add support for Github Tokens
-    OpenApiSecurityScheme openApiSecurityScheme = new OpenApiSecurityScheme
+    authenticationOptions.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    authenticationOptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(jwtBearerOptions =>
+{
+    jwtBearerOptions.RequireHttpsMetadata = true;
+    jwtBearerOptions.SaveToken = true;
+    jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
     {
-        Reference = new OpenApiReference
-        {
-            Type = ReferenceType.SecurityScheme,
-            Id = "Bearer"
-        },
-        Type = SecuritySchemeType.Http,
-        Scheme = "oauth2",
-        Name = "Bearer",
-        In = ParameterLocation.Header
+        ValidateIssuer = true,
+        ValidIssuer = jwtTokenConfig.Issuer,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtTokenConfig.Secret)),
+        ValidAudience = jwtTokenConfig.Audience,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.FromMinutes(1)
     };
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme());
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        { openApiSecurityScheme, new List<string>() }
-    });
 });
 
 builder.Services.AddSingleton<IBase64Service, Base64Service>();
+builder.Services.AddScoped<IGitHubAuth, GitHubAuth>();
+builder.Services.AddSingleton<IJwtAuthManager, JwtAuthManager>();
 
-builder.Services.AddAuthentication(options =>
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddSwaggerGen(c =>
 {
-    options.DefaultAuthenticateScheme = "Bearer";
-    options.DefaultChallengeScheme = "Bearer";
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "EOSC", Version = "v1" });
+
+    var securityScheme = new OpenApiSecurityScheme
+    {
+        Name = "JWT Authentication",
+        Description = "Enter JWT Bearer token **_only_**",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Reference = new OpenApiReference
+        {
+            Id = JwtBearerDefaults.AuthenticationScheme,
+            Type = ReferenceType.SecurityScheme
+        }
+    };
+    c.AddSecurityDefinition(securityScheme.Reference.Id, securityScheme);
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { securityScheme, Array.Empty<string>() }
+    });
 });
 
 // Break if we dont have EOSCDB
@@ -51,22 +84,41 @@ builder.Services.AddSingleton<IHistoryService, HistoryService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// if (app.Environment.IsDevelopment())
+// {
+//     app.UseSwagger();
+//     app.UseSwaggerUI();
+// }
+app.UseSwagger();
+app.UseSwaggerUI();
+
 
 app.UseAuthorization();
 
-// services.AddAuthentication(options => 
-// {
-// options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-// options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-// });
+
+/*app.Use(async (context, next) =>
+{
+    var authHeader = context.Request.Headers.TryGetValue("Authorization", out var authHeaderValue);
+
+    if (!authHeader)
+    {
+        //todo: un-auth:
+    }
+
+    // Remove the 'Bearer ' if it exists.
+    var token = authHeaderValue.ToString()["Bearer ".Length..].Trim();
+
+    if (token.Equals("test token"))
+    {
+        await next.Invoke();
+    }
 
 
-app.UseAuthentication();
+    // var key = Encoding.ASCII.GetBytes(JwtSecretKey);
+
+    // Do work that can write to the Response.
+    // Do logging or other work that doesn't write to the Response.
+});*/
 
 
 app.MapControllers();

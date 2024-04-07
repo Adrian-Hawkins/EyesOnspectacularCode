@@ -9,6 +9,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["EOSC.API/EOSC.API.csproj", "EOSC.API/"]
+COPY ["EOSC.Common/EOSC.Common.csproj", "EOSC.Common/"]
 RUN dotnet restore "./EOSC.API/EOSC.API.csproj"
 COPY . .
 WORKDIR "/src/EOSC.API"
