@@ -1,3 +1,3 @@
 ﻿namespace EOSC.Common.Requests;
 
-public record Base64EncodeRequest(string OriginalMessage);
+public record Base64EncodeRequest(string EncodedMessage);

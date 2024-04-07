@@ -27,16 +27,16 @@ public class Base64ConverterController(ILogger<Base64ConverterController> logger
 {
     // [ProducesResponseType(typeof(Base64Response), 200)]
     // [ProducesResponseType(typeof(ValueResponse<string, Base64ServiceResponseCode>), 200)]
-    [ProducesResponseType(typeof(Base64DecodeResponse), 200)]
+    [ProducesResponseType(typeof(Base64EncodeResponse), 200)]
     [ProducesResponseType(typeof(ErrorResponse), 400)]
     [HttpPost("/b64e", Name = "convertToBase64")]
-    public IActionResult ConvertToBase64([FromBody] Base64DecodeRequest request) =>
+    public IActionResult ConvertToBase64([FromBody] Base64EncodeRequest request) =>
         Ok(service.ConvertToBase64(request));
 
     [ProducesResponseType(typeof(Base64Response), 200)]
     [ProducesResponseType(typeof(ErrorResponse), 400)]
     [HttpPost("/b64d", Name = "convertFromBase64")]
-    public IActionResult ConvertFromBase64([FromBody] Base64EncodeRequest request)
+    public IActionResult ConvertFromBase64([FromBody] Base64DecodeRequest request)
     {
         return Ok(service.ConvertFromBase64(request));
     }
@@ -53,7 +53,7 @@ public class Base64ConverterController(ILogger<Base64ConverterController> logger
     [ProducesResponseType(typeof(File), 200)]
     [ProducesResponseType(typeof(ErrorResponse), 400)]
     [HttpPost("convertBase64ToImage", Name = "convertBase64ToImage")]
-    public IActionResult ConvertBase64ToImage([FromBody] Base64DecodeRequest request)
+    public IActionResult ConvertBase64ToImage([FromBody] Base64EncodeRequest request)
     {
         if (!ModelState.IsValid)
         {

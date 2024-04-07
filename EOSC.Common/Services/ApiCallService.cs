@@ -5,15 +5,14 @@ using Microsoft.Extensions.Configuration;
 
 namespace EOSC.Common.Services;
 
-public class BaseService
+public class ApiCallService
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiBaseUrl;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
-    public BaseService()
+    public ApiCallService()
     {
-        //IConfigurationRoot config = new ConfigurationBuilder().AddUserSecrets<APIEndpoint>().Build();
         IConfiguration config = new ConfigurationBuilder()
             .AddUserSecrets<APIEndpoint>()
             .AddEnvironmentVariables()

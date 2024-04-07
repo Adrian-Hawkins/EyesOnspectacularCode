@@ -9,9 +9,9 @@ namespace EOSC.API.Service.base64;
 
 public class Base64Service : IBase64Service
 {
-    public Base64DecodeResponse
-        ConvertToBase64(Base64DecodeRequest request) =>
-        new(DecodedMessage: Convert.ToBase64String(Encoding.UTF8.GetBytes(request.EncodedMessage)));
+    public Base64EncodeResponse
+        ConvertToBase64(Base64EncodeRequest request) =>
+        new(EncodedMessage: Convert.ToBase64String(Encoding.UTF8.GetBytes(request.EncodedMessage)));
 
 
     /// <summary>
@@ -19,7 +19,7 @@ public class Base64Service : IBase64Service
     /// </summary>
     /// <param name="request">The request object containing the base64 string to convert.</param>
     /// <returns>A Base64Response object containing the converted data.</returns>
-    public Base64EncodeResponse ConvertFromBase64(Base64EncodeRequest request)
+    public Base64DecodeResponse ConvertFromBase64(Base64DecodeRequest request)
     {
         var b64String = request.OriginalMessage;
         // Very 'cool' so we need to create a buffer that is big enough to hold the result check out https://en.wikipedia.org/wiki/Base64
@@ -34,7 +34,7 @@ public class Base64Service : IBase64Service
             // return Base64ServiceResponseCode.InvalidBase64;
         }
 
-        return new Base64EncodeResponse(EncodedMessage: Encoding.UTF8.GetString(buffer));
+        return new Base64DecodeResponse(DecodedMessage: Encoding.UTF8.GetString(buffer));
     }
 
     public Base64Response ConvertImageToBase64(ConvertBase64FileRequest request)
@@ -60,7 +60,7 @@ public class Base64Service : IBase64Service
     }
 
 
-    public Base64ByteResponse ConvertImageFromBase64(Base64DecodeRequest request)
+    public Base64ByteResponse ConvertImageFromBase64(Base64EncodeRequest request)
     {
         var b64String = request.EncodedMessage;
         // Very 'cool' so we need to create a buffer that is big enough to hold the result check out https://en.wikipedia.org/wiki/Base64
