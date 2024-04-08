@@ -25,7 +25,7 @@ public class ApiCallService
         };
     }
 
-    public async Task<TO> MakeGetApiCall<TO>(string path)
+    public async Task<TO?> MakeGetApiCall<TO>(string path)
     {
         try
         {
@@ -34,12 +34,12 @@ public class ApiCallService
             var readAsStringAsync = await postAsJsonAsync.Content.ReadAsStringAsync();
             Console.WriteLine(readAsStringAsync);
             var readFromJsonAsync = await postAsJsonAsync.Content.ReadFromJsonAsync<TO>(_jsonSerializerOptions);
-            return readFromJsonAsync ?? throw new Exception("Unable to do conversion");
+            return readFromJsonAsync;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error: {ex.Message}");
-            throw;
+            return default(TO);
         }
     }
 

@@ -16,13 +16,12 @@ namespace EOSC.Bot.Commands
 
         public override async Task SendCommand(string discordToken, List<string> args, Message message)
         {
-            var base64EncodeResponse =
+            var result =
                 await _apiCallService.MakeGetApiCall<HistoryResponse>(
                     "/api/history/User2"
                 );
-            await SendMessageAsync(base64EncodeResponse.history.ToString(), message.ChannelId, discordToken);
-            /*string response = $@"History found for @{message.Author.Username}: \n\n";
-            HistoryResponse? result = await _historyService.GetHistoryAsync("User2");
+
+            string response = $@"History found for @{message.Author.Username}: \n\n";
             if (result?.history == null)
             {
                 response = $"No history found for <@{message.Author.Id}>";
@@ -36,7 +35,7 @@ namespace EOSC.Bot.Commands
                 }
             }
 
-            await SendMessageAsync($"{response}", message.ChannelId, discordToken);*/
+            await SendMessageAsync($"{response}", message.ChannelId, discordToken);
         }
     }
 }

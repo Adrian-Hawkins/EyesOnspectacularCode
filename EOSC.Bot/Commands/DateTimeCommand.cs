@@ -4,18 +4,14 @@ using EOSC.Common.Responses;
 using EOSC.Bot.Attributes;
 using EOSC.Bot.Classes.Deserializers;
 using System.Text.RegularExpressions;
+using EOSC.Bot.Config;
 
 namespace EOSC.Bot.Commands
 {
     [Command("datetime")]
     public class DateTimeCommand : BaseCommand
     {
-        private readonly DateTimeService _conversionService;
-
-        public DateTimeCommand()
-        {
-            _conversionService = new DateTimeService();
-        }
+        private readonly ApiCallService _apiCallService = new();
 
         public override async Task SendCommand(string botToken, List<string> args, Message message)
         {
@@ -37,9 +33,15 @@ namespace EOSC.Bot.Commands
                 originalFormat,
                 desiredFormat
             );
+            var response =
+            await _apiCallService.MakeApiCall<DatetimeRequest, DateTimeConversionResponse>(
+                "/api/Datetime",
+                request
+            );
+
             try
             {
-                DateTimeConversionResponse response = await _conversionService.ConvertDateTime(request);
+                
                 await SendMessageAsync(response.ConvertedTime, message.ChannelId, botToken);
             }
             catch (Exception ex)
