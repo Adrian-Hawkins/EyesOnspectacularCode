@@ -1,19 +1,14 @@
-﻿using Discord.Commands;
+﻿using EOSC.Bot.Attributes;
+using EOSC.Bot.Classes.Deserializers;
 
 namespace EOSC.Bot.Commands
 {
-    public class EchoCommand : ModuleBase<SocketCommandContext>
+    [Command("echo")]
+    public class EchoCommand : BaseCommand
     {
-        [Command("echo")]
-        public async Task ExecuteAsync([Remainder] string phrase)
+        public override async Task SendCommand(string botToken, List<string> args, Message message)
         {
-            if (string.IsNullOrEmpty(phrase))
-            {
-                await ReplyAsync($"Usage: !echo <phrase>");
-                return;
-            }
-
-            await ReplyAsync(phrase);
+            await SendMessageAsync($"{String.Join(" ", args)}", message.ChannelId, botToken);
         }
     }
 }

@@ -16,8 +16,7 @@ jobs:
       run: docker login -u ${{secrets.DOCKER_USERNAME}} -p ${{secrets.DOCKER_PASSWORD}}
     - name: Build
       run: |
-        cd EOSC.API
-        docker build -t ${{secrets.DOCKER_USERNAME}}/eoscapi .
+        docker build -t ${{secrets.DOCKER_USERNAME}}/eoscapi -f EOSC.API/Dockerfile .
         docker push ${{secrets.DOCKER_USERNAME}}/eoscapi:latest
   deploy_api: 
     needs: build_api
@@ -30,4 +29,4 @@ jobs:
       - name: Delete old container
         run: sudo docker rm -f eosc-api-container
       - name: Run container
-        run: sudo docker run -d -p 80:8080 --name eosc-api-container ${{secrets.DOCKER_USERNAME}}/eoscapi:latest
+        run: sudo docker run -d -e database:connection="${{secrets.DB_CONNECTION_STRING}}" -p 80:8080 --name eosc-api-container ${{secrets.DOCKER_USERNAME}}/eoscapi:latest

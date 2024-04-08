@@ -8,15 +8,16 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["EOSC.Web.csproj", "./"]
-RUN dotnet restore "EOSC.Web.csproj"
+COPY ["EOSC.Web/EOSC.Web.csproj", "EOSC.Web/"]
+COPY ["EOSC.Common/EOSC.Common.csproj", "EOSC.Common/"]
+RUN dotnet restore "./EOSC.Web/EOSC.Web.csproj"
 COPY . .
-WORKDIR "/src"
-RUN dotnet build "EOSC.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/EOSC.Web"
+RUN dotnet build "./EOSC.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "EOSC.Web.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./EOSC.Web.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
