@@ -25,6 +25,25 @@ public class ApiCallService
         };
     }
 
+    public async Task<TO?> MakeGetApiCall<TO>(string path)
+    {
+        try
+        {
+            var postAsJsonAsync = await _httpClient.GetAsync(_apiBaseUrl + path);
+
+            var readAsStringAsync = await postAsJsonAsync.Content.ReadAsStringAsync();
+            Console.WriteLine(readAsStringAsync);
+            var readFromJsonAsync = await postAsJsonAsync.Content.ReadFromJsonAsync<TO>(_jsonSerializerOptions);
+            return readFromJsonAsync;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            return default(TO);
+        }
+    }
+
+
     public async Task<TO> MakeApiCall<TI, TO>(string path, TI request)
     {
         try

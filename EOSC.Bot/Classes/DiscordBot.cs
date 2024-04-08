@@ -18,9 +18,6 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
 
     private readonly Dictionary<string, BaseCommand> _commands = new();
 
-    private Timer _heartbeatTimer;
-    private readonly TimeSpan _heartbeatInterval = TimeSpan.FromSeconds(30);
-
 
     private void LoadCommands()
     {
@@ -32,6 +29,7 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
             var commandInstance = Activator.CreateInstance(type) as BaseCommand;
             _commands.Add(attribute!.CommandName, commandInstance!);
         }
+
         foreach (var kvp in _commands)
         {
             Console.WriteLine($"Command: {kvp.Key}, Type: {kvp.Value.GetType().Name}");
@@ -73,11 +71,6 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
 
             SendWsMessageAsync(identifyPayload);
             _ = Task.Run(async () => await ReceiveMessages(cts.Token));
-            _heartbeatTimer = new Timer(_ =>
-            {
-                var json = @"{""op"": 1, ""d"": null}";
-                SendWsMessageAsync(json);
-            }, null, TimeSpan.Zero, _heartbeatInterval);
 
             await Task.Delay(Timeout.Infinite, cts.Token);
         }
@@ -98,7 +91,7 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
     {
         try
         {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[1024 * 4];
             while (_socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
             {
                 WebSocketReceiveResult result =
@@ -119,13 +112,19 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
                 }
             }
         }
-        catch (WebSocketException)
+        catch (WebSocketException e)
         {
             // Handle WebSocket exceptions
+            Console.WriteLine(e);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException e)
         {
             // Handle operation cancellation
+            Console.WriteLine(e);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
         }
     }
 

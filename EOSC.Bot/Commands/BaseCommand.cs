@@ -1,4 +1,5 @@
-﻿using EOSC.Bot.Attributes;
+﻿using System.Net.Http.Json;
+using EOSC.Bot.Attributes;
 using System.Text;
 using EOSC.Bot.Classes.Deserializers;
 
@@ -15,6 +16,11 @@ namespace EOSC.Bot.Commands
         public abstract Task SendCommand(string botToken, List<string> args, Message message);
 
 
+        class Resp
+        {
+            public required string Content;
+        }
+
 
         protected async Task SendMessageAsync(string message, string channelId, string botToken)
         {
@@ -22,6 +28,10 @@ namespace EOSC.Bot.Commands
             {
                 string url = $"https://discordapp.com/api/v9/channels/{channelId}/messages";
                 string jsonPayload = $"{{\"content\": \"{message}\"}}";
+                var resp = new Resp
+                {
+                    Content = message
+                };
                 using var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Bot {botToken}");
                 var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
