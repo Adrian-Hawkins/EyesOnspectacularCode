@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using EOSC.Common.Requests;
 using EOSC.Common.Responses;
+using EOSC.API.Attributes;
 
 namespace EOSC.API.Controllers
 {
@@ -8,7 +9,7 @@ namespace EOSC.API.Controllers
     [ApiController]
     public class DatetimeController : ControllerBase
     {
-
+        [Tool("datetime")]
         [HttpPost]
         public IActionResult Post([FromBody] DatetimeRequest request)
         {
