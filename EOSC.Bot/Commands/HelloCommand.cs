@@ -7,6 +7,7 @@ namespace EOSC.Bot.Commands
     {
         public async override Task SendCommand(string discordToken, List<string> args, Message message)
         {
+
             await SendMessageAsync($"Hello @{message.Author.Username}", message.ChannelId, discordToken);
         }
     }
