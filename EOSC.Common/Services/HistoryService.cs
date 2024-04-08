@@ -39,6 +39,8 @@ namespace EOSC.Common.Services
                 }
 
                 string jsonResponse = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(jsonResponse);
+                
                 JsonSerializerOptions options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true

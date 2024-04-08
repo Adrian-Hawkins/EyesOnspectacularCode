@@ -8,13 +8,21 @@ using System.Text.RegularExpressions;
 namespace EOSC.Bot.Commands
 {
     [Command("GetHistory")]
-    public class GetHistoryCommand: BaseCommand
+    public class GetHistoryCommand : BaseCommand
     {
-        HistoryService historyService = new HistoryService();
-        public async override Task SendCommand(string discordToken, List<string> args, Message message)
+        private readonly ApiCallService _apiCallService = new();
+
+        // private readonly HistoryService _historyService = new HistoryService();
+
+        public override async Task SendCommand(string discordToken, List<string> args, Message message)
         {
-            string response = $"History found for @{message.Author.Username}: \\n\\n";
-            HistoryResponse result = await historyService.GetHistoryAsync("User2");
+            var base64EncodeResponse =
+                await _apiCallService.MakeGetApiCall<HistoryResponse>(
+                    "/api/history/User2"
+                );
+            await SendMessageAsync(base64EncodeResponse.history.ToString(), message.ChannelId, discordToken);
+            /*string response = $@"History found for @{message.Author.Username}: \n\n";
+            HistoryResponse? result = await _historyService.GetHistoryAsync("User2");
             if (result?.history == null)
             {
                 response = $"No history found for <@{message.Author.Id}>";
@@ -27,8 +35,8 @@ namespace EOSC.Bot.Commands
                     response += $"{clean}\\n\\n";
                 }
             }
-            await SendMessageAsync($"{response}", message.ChannelId, discordToken);
 
+            await SendMessageAsync($"{response}", message.ChannelId, discordToken);*/
         }
     }
 }
