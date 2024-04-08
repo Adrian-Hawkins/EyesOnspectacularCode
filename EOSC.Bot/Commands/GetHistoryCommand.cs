@@ -18,10 +18,10 @@ namespace EOSC.Bot.Commands
         {
             var result =
                 await _apiCallService.MakeGetApiCall<HistoryResponse>(
-                    "/api/history/User2"
+                    $"/api/history/{message.Author.GlobalName}"
                 );
 
-            string response = $@"History found for @{message.Author.Username}: \n\n";
+            string response = $@"History found for <@{message.Author.Id}>: \n\n";
             if (result?.history == null)
             {
                 response = $"No history found for <@{message.Author.Id}>";
