@@ -12,8 +12,13 @@ namespace EOSC.Bot.Classes.Deserializers;
 /// </summary>
 public class BaseMessage
 {
-    [JsonPropertyName("op")] public int OpCode { get; init; }
+    [JsonPropertyName("op")] public GatewayOpCode OpCode { get; init; }
     [JsonPropertyName("d")] public JsonElement? Data { get; init; }
     [JsonPropertyName("s")] public int? SequenceNumber { get; init; }
     [JsonPropertyName("t")] public string? EventName { get; init; }
+
+    public override string ToString()
+    {
+        return $"{OpCode} {SequenceNumber} {EventName} {Data}";
+    }
 }
