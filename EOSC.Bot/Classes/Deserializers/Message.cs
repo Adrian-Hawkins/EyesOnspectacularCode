@@ -2,7 +2,6 @@
 
 namespace EOSC.Bot.Classes.Deserializers;
 
-
 public class Message
 {
     [JsonPropertyName("channel_id")] public required string ChannelId { get; init; }

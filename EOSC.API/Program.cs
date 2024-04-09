@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using EOSC.API.Middleware;
+using Microsoft.AspNetCore.Authorization;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -98,6 +99,32 @@ app.UseSwaggerUI();
 
 app.UseAuthorization();
 
+/*app.Use(async (ctx, next) =>
+{
+    var displayName = ctx.GetEndpoint()!.DisplayName!;
+    if (displayName.Equals("/login/oauth2/code/github") || displayName.Equals("/login"))
+    {
+        // No auth on these endpoints
+        await next();
+    }
+
+    if (ctx.GetEndpoint()?.Metadata.GetMetadata<IAuthorizeData>() != null)
+    {
+        // Endpoint allows anonymous access
+        await next();
+        return;
+    }
+
+
+    if (!ctx.User.Identity!.IsAuthenticated)
+    {
+        ctx.Response.StatusCode = 401;
+        await ctx.Response.WriteAsync("Not authenticated");
+        return;
+    }
+
+    await next.Invoke();
+});*/
 
 /*app.Use(async (context, next) =>
 {
