@@ -1,45 +1,29 @@
 ﻿using System.Net.WebSockets;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using EOSC.Bot.Config;
-using EOSC.Bot.Commands;
-using EOSC.Bot.Classes.Deserializers;
-using System.Reflection;
 using EOSC.Bot.Attributes;
+using EOSC.Bot.Classes.Deserializers;
+using EOSC.Bot.Commands;
+using EOSC.Bot.Config;
 using EOSC.Bot.Interfaces.Classes;
 
 namespace EOSC.Bot.Classes;
 
-public partial class DiscordBot(DiscordToken token) : IDiscordBot
+public class DiscordBot(DiscordToken token) : IDiscordBot
 {
     private const string GatewayUrl = "wss://gateway.discord.gg/?v=9&encoding=json";
+
+    private readonly Dictionary<string, BaseCommand> _commands = new();
     private readonly string _discordToken = token.Token;
     private readonly ClientWebSocket _socket = new();
 
-    private readonly Dictionary<string, BaseCommand> _commands = new();
-
-
-    private void LoadCommands()
-    {
-        var types = Assembly.GetExecutingAssembly().GetTypes();
-        var commandTypes = types.Where(t => t.GetCustomAttribute<CommandAttribute>() != null);
-        foreach (var type in commandTypes)
-        {
-            var attribute = type.GetCustomAttribute<CommandAttribute>();
-            var commandInstance = Activator.CreateInstance(type) as BaseCommand;
-            _commands.Add(attribute!.CommandName, commandInstance!);
-        }
-
-        foreach (var kvp in _commands)
-        {
-            Console.WriteLine($"Command: {kvp.Key}, Type: {kvp.Value.GetType().Name}");
-        }
-    }
+    private int? _currentSequence;
 
 
     public async Task StartAsync()
     {
-        CancellationTokenSource cts = new CancellationTokenSource();
+        var cts = new CancellationTokenSource();
         LoadCommands();
         try
         {
@@ -70,7 +54,7 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
                                     """;
 
             SendWsMessageAsync(identifyPayload);
-            _ = Task.Run(async () => await ReceiveMessages(cts.Token));
+            _ = Task.Run(async () => await ReceiveMessages(cts.Token), cts.Token);
 
             await Task.Delay(Timeout.Infinite, cts.Token);
         }
@@ -80,10 +64,25 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
         }
         finally
         {
-            if (_socket.State == WebSocketState.Open || _socket.State == WebSocketState.Connecting)
+            if (_socket.State is WebSocketState.Open or WebSocketState.Connecting)
                 await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
             _socket.Dispose();
         }
+    }
+
+
+    private void LoadCommands()
+    {
+        var types = Assembly.GetExecutingAssembly().GetTypes();
+        var commandTypes = types.Where(t => t.GetCustomAttribute<CommandAttribute>() != null);
+        foreach (var type in commandTypes)
+        {
+            var attribute = type.GetCustomAttribute<CommandAttribute>();
+            var commandInstance = Activator.CreateInstance(type) as BaseCommand;
+            _commands.Add(attribute!.CommandName, commandInstance!);
+        }
+
+        foreach (var kvp in _commands) Console.WriteLine($"Command: {kvp.Key}, Type: {kvp.Value.GetType().Name}");
     }
 
 
@@ -91,10 +90,10 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
     {
         try
         {
-            byte[] buffer = new byte[1024 * 4];
+            var buffer = new byte[1024 * 4];
             while (_socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
             {
-                WebSocketReceiveResult result =
+                var result =
                     await _socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
 
                 switch (result.MessageType)
@@ -133,19 +132,52 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
         var baseMessage = JsonSerializer.Deserialize<BaseMessage>(message);
         // Unable to deserialize message this shouldn't happen.
         if (baseMessage == null) return;
+        _currentSequence = baseMessage.SequenceNumber ?? _currentSequence;
         switch (baseMessage.OpCode)
         {
-            case 10:
+            case GatewayOpCode.Hello:
                 HandleHeartbeat(baseMessage);
                 break;
-            case 0:
+            case GatewayOpCode.Dispatch:
                 HandleGatewayEvent(baseMessage);
+                break;
+            case GatewayOpCode.HeartbeatAck:
+                Console.WriteLine("HeartbeatAck");
+                Console.WriteLine("-----------------------------------");
+                Console.WriteLine("We are Received HeartbeatAck");
+                Console.WriteLine("Server HeartbeatAck");
+                Console.WriteLine(baseMessage);
+                Console.WriteLine("-----------------------------------");
+                break;
+            case GatewayOpCode.Heartbeat:
+                Console.WriteLine("Heartbeat");
+                Console.WriteLine("-----------------------------------");
+                Console.WriteLine("We are trying to Heartbeat");
+                Console.WriteLine("Server requested a Heartbeat");
+                Console.WriteLine(baseMessage);
+                Console.WriteLine("-----------------------------------");
+                break;
+            case GatewayOpCode.Reconnect:
+                Console.WriteLine("Reconnect");
+                Console.WriteLine("-----------------------------------");
+                Console.WriteLine("We are trying to reconnect");
+                Console.WriteLine("Server requested a reconnect");
+                Console.WriteLine(baseMessage);
+                Console.WriteLine("-----------------------------------");
+                break;
+            default:
+                Console.WriteLine("Other Event");
+                Console.WriteLine("-----------------------------------");
+                Console.WriteLine(baseMessage);
+                Console.WriteLine("-----------------------------------");
                 break;
         }
     }
 
     private void HandleGatewayEvent(BaseMessage baseMessage)
     {
+        if (baseMessage.EventName is "RESUMED") Console.WriteLine("We are trying to Resume maybe do something here?");
+
         // We dont super care about any message other that create.
         if (baseMessage.EventName is not "MESSAGE_CREATE") return;
         // We know deserialize will work here as this is how the docs defined it.
@@ -160,9 +192,7 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
 
 
         if (_commands.TryGetValue(command, out var commandHandler))
-        {
             commandHandler.SendCommand(_discordToken, args, message);
-        }
 
         Console.WriteLine($"Command: {command}");
         Console.WriteLine("Args:");
@@ -189,17 +219,17 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
 
     private void HandleHeartbeat(BaseMessage baseMessage)
     {
-        var heartBeat = baseMessage.Data?.Deserialize<HeartBeat>();
+        var heartBeat = baseMessage.Data?.Deserialize<HelloEvent>();
         if (heartBeat?.HeartbeatInterval != null)
             _ = new Timer(_ =>
                 {
                     // Need this Ternary as null serialises to literally nothing and we need it to be null  
-                    var json = baseMessage.SequenceNumber == null
+                    var heartbeatJson = _currentSequence == null
                         ? """{"op":1, "d": null}"""
-                        : $$"""{"op":1, "d": {{baseMessage.SequenceNumber}}}""";
-
-                    SendWsMessageAsync(json);
-                }, _socket, 0,
+                        : $$"""{"op":1, "d": {{_currentSequence}}}""";
+                    Console.WriteLine(heartbeatJson);
+                    SendWsMessageAsync(heartbeatJson);
+                }, _socket, heartBeat.HeartbeatInterval,
                 heartBeat.HeartbeatInterval);
     }
 }
