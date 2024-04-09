@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using EOSC.Common.Requests;
 using EOSC.Common.Responses;
-using EOSC.API.Service.ChatGPT;
+using EOSC.Common.Services.ChatGPT;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 

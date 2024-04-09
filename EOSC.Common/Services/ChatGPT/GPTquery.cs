@@ -2,17 +2,22 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
-namespace EOSC.API.Service.ChatGPT
+using EOSC.Common.Config;
+using Microsoft.Extensions.Configuration;
+namespace EOSC.Common.Services.ChatGPT
 {
 	public class GPTquery
 	{
-		public static async Task<string> GenerateText(string prompt)
+		public static async Task<string?> GenerateText(string prompt)
 		{
 			HttpClient client = new HttpClient();
 			var url = "https://api.openai.com/v1/chat/completions";
-			string apiKey = "";
-			client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+            IConfiguration config = new ConfigurationBuilder()
+				.AddUserSecrets<GPT>()
+				.AddEnvironmentVariables()
+				.Build();
+            string apiKey = config["gpt:key"] ?? throw new Exception("Please provide api key");
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
 
 			var request = new
 			{
