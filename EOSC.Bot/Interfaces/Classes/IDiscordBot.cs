@@ -1,8 +1,6 @@
-﻿namespace EOSC.Bot.Interfaces.Classes
+﻿namespace EOSC.Bot.Interfaces.Classes;
+
+public interface IDiscordBot
 {
-    public interface IDiscordBot
-    {
-        Task ReceiveMessages(CancellationToken cancellationToken);
-        Task StartAsync();
-    }
+    Task StartAsync();
 }
