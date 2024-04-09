@@ -18,8 +18,9 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
 
     private readonly Dictionary<string, BaseCommand> _commands = new();
 
-    private Timer _heartbeatTimer;
     private readonly TimeSpan _heartbeatInterval = TimeSpan.FromSeconds(30);
+
+    private int? _currentSequence;
 
 
     private void LoadCommands()
@@ -42,7 +43,7 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
 
     public async Task StartAsync()
     {
-        CancellationTokenSource cts = new CancellationTokenSource();
+        var cts = new CancellationTokenSource();
         LoadCommands();
         try
         {
@@ -74,11 +75,11 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
 
             SendWsMessageAsync(identifyPayload);
             _ = Task.Run(async () => await ReceiveMessages(cts.Token));
-            _heartbeatTimer = new Timer(_ =>
+            /*_heartbeatTimer = new Timer(_ =>
             {
                 var json = @"{""op"": 1, ""d"": null}";
                 SendWsMessageAsync(json);
-            }, null, TimeSpan.Zero, _heartbeatInterval);
+            }, null, TimeSpan.Zero, _heartbeatInterval);*/
 
             await Task.Delay(Timeout.Infinite, cts.Token);
         }
@@ -141,13 +142,38 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
         var baseMessage = JsonSerializer.Deserialize<BaseMessage>(message);
         // Unable to deserialize message this shouldn't happen.
         if (baseMessage == null) return;
+        _currentSequence = baseMessage.SequenceNumber;
         switch (baseMessage.OpCode)
         {
-            case 10:
+            case GatewayOpCode.Hello:
                 HandleHeartbeat(baseMessage);
                 break;
-            case 0:
+            case GatewayOpCode.Dispatch:
                 HandleGatewayEvent(baseMessage);
+                break;
+            case GatewayOpCode.HeartbeatAck:
+                Console.WriteLine("HeartbeatAck");
+                Console.WriteLine("-----------------------------------");
+                Console.WriteLine("We are Received HeartbeatAck");
+                Console.WriteLine("Server HeartbeatAck");
+                Console.WriteLine(baseMessage);
+                Console.WriteLine("-----------------------------------");
+                break;
+            case GatewayOpCode.Heartbeat:
+                Console.WriteLine("Heartbeat");
+                Console.WriteLine("-----------------------------------");
+                Console.WriteLine("We are trying to Heartbeat");
+                Console.WriteLine("Server requested a Heartbeat");
+                Console.WriteLine(baseMessage);
+                Console.WriteLine("-----------------------------------");
+                break;
+            case GatewayOpCode.Reconnect:
+                Console.WriteLine("Reconnect");
+                Console.WriteLine("-----------------------------------");
+                Console.WriteLine("We are trying to reconnect");
+                Console.WriteLine("Server requested a reconnect");
+                Console.WriteLine(baseMessage);
+                Console.WriteLine("-----------------------------------");
                 break;
         }
     }
@@ -197,17 +223,17 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
 
     private void HandleHeartbeat(BaseMessage baseMessage)
     {
-        var heartBeat = baseMessage.Data?.Deserialize<HeartBeat>();
+        var heartBeat = baseMessage.Data?.Deserialize<HelloEvent>();
         if (heartBeat?.HeartbeatInterval != null)
             _ = new Timer(_ =>
                 {
                     // Need this Ternary as null serialises to literally nothing and we need it to be null  
-                    var json = baseMessage.SequenceNumber == null
+                    var heartbeatJson = _currentSequence == null
                         ? """{"op":1, "d": null}"""
-                        : $$"""{"op":1, "d": {{baseMessage.SequenceNumber}}}""";
-
-                    SendWsMessageAsync(json);
-                }, _socket, 0,
+                        : $$"""{"op":1, "d": {{_currentSequence}}}""";
+                    Console.WriteLine(heartbeatJson);
+                    SendWsMessageAsync(heartbeatJson);
+                }, _socket, heartBeat.HeartbeatInterval,
                 heartBeat.HeartbeatInterval);
     }
 }
