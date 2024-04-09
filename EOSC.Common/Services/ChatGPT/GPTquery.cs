@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using EOSC.Common.Config;
 using Microsoft.Extensions.Configuration;
+using EOSC.Common.Responses;
 namespace EOSC.Common.Services.ChatGPT
 {
 	public class GPTquery
