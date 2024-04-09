@@ -4,11 +4,11 @@ using System.Text.Json.Serialization;
 namespace EOSC.Bot.Classes.Deserializers;
 
 /// <summary>
-/// op integer Gateway opcode, which indicates the payload type
-/// d? mixed(any JSON value) Event data
-/// s? integer * Sequence number of event used for resuming sessions and heartbeating
-/// t?string* Event name
-/// * s and t are null when op is not 0 (Gateway Dispatch opcode).
+///     op integer Gateway opcode, which indicates the payload type
+///     d? mixed(any JSON value) Event data
+///     s? integer * Sequence number of event used for resuming sessions and heartbeating
+///     t?string* Event name
+///     * s and t are null when op is not 0 (Gateway Dispatch opcode).
 /// </summary>
 public class BaseMessage
 {
