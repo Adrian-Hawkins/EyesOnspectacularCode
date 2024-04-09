@@ -176,10 +176,7 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
 
     private void HandleGatewayEvent(BaseMessage baseMessage)
     {
-        if (baseMessage.EventName is "RESUMED")
-        {
-            Console.WriteLine("We are trying to Resume maybe do something here?");
-        }
+        if (baseMessage.EventName is "RESUMED") Console.WriteLine("We are trying to Resume maybe do something here?");
 
         // We dont super care about any message other that create.
         if (baseMessage.EventName is not "MESSAGE_CREATE") return;
