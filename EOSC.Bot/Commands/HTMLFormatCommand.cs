@@ -13,7 +13,7 @@ namespace EOSC.Bot.Commands
 		private readonly ApiCallService _apiCallService = new();
 		public override async Task SendCommand(string botToken, List<string> args, Message message)
 		{
-			string content = message.Content;
+			string content = $"Please format (tabs = 4 spaces) the following HTML, I am using it in an application so please don't return anything besides the formatted HTML: {message.Content}";
 			if (content == null)
 			{
 				await SendMessageAsync("Usage: !htmlformat <html>", message.ChannelId, botToken);
