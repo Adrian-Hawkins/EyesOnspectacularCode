@@ -4,6 +4,10 @@
 @using System.Text;
 @using System.IO
 @using System.Xml
+@using EOSC.Common.Requests
+@using EOSC.Common.Responses
+@using EOSC.Common.Services
+@inject DateTimeService DateTimeService
 
 <PageTitle>Formatting Tool</PageTitle>
 
@@ -42,6 +46,8 @@
 
 
 @code {
+
+    private readonly ApiCallService _apiCallService = new();
     private string? _responseMessage;
     private string SwapMode { get; set; } = "JSON";
 
@@ -62,83 +68,60 @@
         SwapMode = "HTML";
     }
 
-
-    private async Task MakeHttpRequest()
-    {
-        try
-        {
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://curlconv.netlify.app/convert");
-            string requestBody = $@"{{
-                                        ""language"": ""{SwapMode}"",
-                                        ""command"": ""{Command}""
-                                    }}";
-            //request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
-            var response = await HttpClient.SendAsync(request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var data = await response.Content.ReadAsStringAsync();
-                
-                //_responseMessage = dataArr[1];
-                //Console.WriteLine("Received Data : "+dataArray.split("\"")[1]);
-            }
-            else
-            {
-                _responseMessage = "Error: " + response.ReasonPhrase;
-            }
-        }
-        catch (Exception ex)
-        {
-            _responseMessage = "Error: " + ex.Message;
-        }
-    }
-
     private async Task formatText(){
 
         switch(SwapMode){
             case "JSON":
+                _responseMessage = await JsonPrettier();
                 break;
             case "XML":
-                _responseMessage = formatXMl();
+                _responseMessage = await formatXMl();
                 break;
             case "HTML":
-                _responseMessage = formatXMl();
+                _responseMessage = await formatXMl();
                 break;
 
         }
-        //_responseMessage = formatXMl();
+
     }
 
-    private string formatXMl(){
-        XmlDocument xmlDoc = new XmlDocument();
-        xmlDoc.LoadXml(InputText);
+    private async Task<string> formatXMl(){
 
         string formattedXml;
-        
-        using (StringWriter stringWriter = new StringWriter())
+
         {
             try{
-                XmlWriterSettings settings = new XmlWriterSettings
-                {
-                    Indent = true,
-                    IndentChars = "  ",
-                    NewLineChars = "\r\n",
-                    NewLineHandling = NewLineHandling.Replace
-                };
+                var requestObject = new XmlPrettyRequest(InputText);
+                var JsonPretty =
+                    await _apiCallService.MakeApiCall<XmlPrettyRequest, XmlPrettyResponse>(
+                    "/api/JsonFormat/xmlpretty",
+                        requestObject);
 
-                using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, settings))
-                {
-                    xmlDoc.WriteTo(xmlWriter);
-                }
-
-                formattedXml = stringWriter.ToString();
+                formattedXml = JsonPretty.PrettyXml.ToString();
             }catch (Exception ex){
                 formattedXml = "Error: " + ex.Message;
             }
         }
         return formattedXml;
     }
+
+    private async Task<string> JsonPrettier()
+    {
+        try
+            {
+                var requestObject = new JsonPrettyRequest(InputText);
+                var JsonPretty =
+                    await _apiCallService.MakeApiCall<JsonPrettyRequest, JsonPrettyResponse>(
+                    "/api/JsonFormat",
+                        requestObject);
+ 
+                return JsonPretty.PrettifiedJson.ToString();
+            }
+            catch (Exception ex)
+            {
+               return $"Error: {ex.Message}";
+            }
+        }
 
 
 }

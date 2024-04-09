@@ -1,7 +1,10 @@
 @page "/curl"
 @using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue
 @inject HttpClient HttpClient
-@using System.Text;
+@using System.Text
+@using EOSC.Common.Requests
+@using EOSC.Common.Responses
+@using EOSC.Common.Services
 
 <PageTitle>Curl Conversion</PageTitle>
 
@@ -29,41 +32,17 @@
         </li>
     </ul>
     <textarea class="form-control" aria-label="With textarea" @bind="Command"></textarea>
-    <button class="btn btn-primary" @onclick="MakeHttpRequest">Convert</button>
+    <button class="btn btn-primary" @onclick="ConvertCurl">Convert</button>
 </div>
 
-<div class="border border-primary rounded" style="width:100%">
+<div class="border border-primary rounded bg-light " style="width:100%;height:90%;overflow: scroll;">
 
     <pre><code class="language-java">@(new MarkupString(_responseMessage))</code></pre>
 
 </div>
 
-
-@*<div class="btn-group">
-    <button type="button" class="btn btn-secondary">Reference</button>
-    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" id="dropdownMenuReference" data-bs-toggle="dropdown" aria-expanded="false" data-bs-reference="parent">
-        <span class="visually-hidden">Toggle Dropdown</span>
-    </button>
-    <ul class="dropdown-menu" aria-labelledby="dropdownMenuReference">
-        <li>
-            <a class="dropdown-item" href="#">Action</a>
-        </li>
-        <li>
-            <a class="dropdown-item" href="#">Another action</a>
-        </li>
-        <li>
-            <a class="dropdown-item" href="#">Something else here</a>
-        </li>
-        <li>
-            <hr class="dropdown-divider">
-        </li>
-        <li>
-            <a class="dropdown-item" href="#">Separated link</a>
-        </li>
-    </ul>
-</div>*@
-
 @code {
+    private readonly ApiCallService _apiCallService = new();
     private string? _responseMessage;
     private string SwapMode { get; set; } = "Rust";
 
@@ -84,45 +63,23 @@
         SwapMode = "Python";
     }
 
-
-    private async Task MakeHttpRequest()
+    private async Task ConvertCurl()
     {
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://curlconv.netlify.app/convert");
-            string requestBody = $@"{{
-                                        ""language"": ""{SwapMode}"",
-                                        ""command"": ""{Command}""
-                                    }}";
-            //request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
-            var response = await HttpClient.SendAsync(request);
+            var requestObject = new CurlRequest(Command,SwapMode);
+            var curlCode =
+                await _apiCallService.MakeApiCall<CurlRequest, CurlResponse>(
+            "/api/CurlConverter",
+                    new CurlRequest(Command, SwapMode));
 
-            if (response.IsSuccessStatusCode)
-            {
-                var data = await response.Content.ReadAsStringAsync();
-                string htmlFormatted = data
-                                        .Split('[')                                    // Split the string by '['
-                                        .Skip(1)                                       // Skip the first element
-                                        .First()                                        // Select the first element
-                                        .Replace("\",", "")                              
-                                        .Trim('[', ']', '"')                            // Trim '[' and ']' characters
-                                        .Trim()                                        // Trim leading and trailing whitespace
-                                        .Replace("\\n", "<br>");                       // Replace "\n" with "<br>"
-                _responseMessage = htmlFormatted;
-                //_responseMessage = dataArr[1];
-                //Console.WriteLine("Received Data : "+dataArray.split("\"")[1]);
+            _responseMessage = curlCode.code.ToString();
             }
-            else
+            catch (Exception ex)
             {
-                _responseMessage = "Error: " + response.ReasonPhrase;
+               _responseMessage = $"Error: {ex.Message}";
             }
         }
-        catch (Exception ex)
-        {
-            _responseMessage = "Error: " + ex.Message;
-        }
-    }
 
 
 }
