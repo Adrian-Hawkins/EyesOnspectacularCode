@@ -3,12 +3,14 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using EOSC.Common.Responses;
 namespace EOSC.API.Service.ChatGPT
 {
 	public class GPTquery
 	{
-		public static async Task<string> GenerateText(string prompt)
+		public static async Task<GPTResponse> GenerateText(string prompt)
 		{
+			Console.WriteLine($"Prompt: {prompt}");
 			HttpClient client = new HttpClient();
 			var url = "https://api.openai.com/v1/chat/completions";
 			string apiKey = "";
@@ -36,7 +38,7 @@ namespace EOSC.API.Service.ChatGPT
 			var generatedText = con.GetProperty("content").GetString();
 			Console.WriteLine(generatedText);
 
-			return generatedText;
+			return new GPTResponse(generatedText);
 		}
 	}
 }

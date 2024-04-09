@@ -16,7 +16,7 @@ namespace EOSC.API.Controllers
 		[HttpPost]
 		public async Task <IActionResult> Post([FromBody] GPTRequest requestString)
 		{
-			string generatedText = await GPTquery.GenerateText(requestString.requestString);
+			GPTResponse generatedText = await GPTquery.GenerateText(requestString.requestString);
 			return Ok(generatedText);
 		}
 	}
