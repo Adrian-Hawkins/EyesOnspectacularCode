@@ -142,7 +142,7 @@ public partial class DiscordBot(DiscordToken token) : IDiscordBot
         var baseMessage = JsonSerializer.Deserialize<BaseMessage>(message);
         // Unable to deserialize message this shouldn't happen.
         if (baseMessage == null) return;
-        _currentSequence = baseMessage.SequenceNumber;
+        _currentSequence = baseMessage.SequenceNumber ?? _currentSequence;
         switch (baseMessage.OpCode)
         {
             case GatewayOpCode.Hello:
