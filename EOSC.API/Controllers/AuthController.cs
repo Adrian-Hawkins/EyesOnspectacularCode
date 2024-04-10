@@ -47,7 +47,8 @@ public class AuthController(
                 return BadRequest(githubAccessToken.Error);
             }
 
-            return Ok(githubAccessToken.AccessToken);
+            // return Ok(githubAccessToken.AccessToken);
+            return Redirect("http://localhost:58721?code=" + githubAccessToken.AccessToken);
         }
         catch (Exception e)
         {
