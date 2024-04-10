@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 using EOSC.Bot.Attributes;
 using EOSC.Bot.Classes.Deserializers;
 
@@ -15,42 +16,36 @@ public abstract class BaseCommand
     public abstract Task SendCommand(string botToken, List<string> args, Message message);
 
 
+    public record Resp
+    {
+        [JsonPropertyName("content")] public required string Content { get; set; }
+    }
+
+
     protected async Task SendMessageAsync(string message, string channelId, string botToken)
     {
         try
         {
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bot {botToken}");
+
             var url = $"https://discordapp.com/api/v9/channels/{channelId}/messages";
-            var jsonPayload = $"{{\"content\": \"{message}\"}}";
-            var resp = new Resp
+            var req = new Resp
             {
                 Content = message
             };
-            using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bot {botToken}");
-            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
-            try
-            {
-                var response = await httpClient.PostAsync(url, content);
-                if (response.IsSuccessStatusCode)
-                    Console.WriteLine("POST request successful. Message sent.");
-                else
-                    Console.WriteLine($"POST request failed with status code: {response.StatusCode}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-            }
+            var jsonContent = JsonContent.Create(req, typeof(Resp));
+            Console.WriteLine(await jsonContent.ReadAsStringAsync());
+
+            var responseMessage = await httpClient.PostAsJsonAsync(url, req);
+
+            var readAsStringAsync = await responseMessage.Content.ReadAsStringAsync();
+            Console.WriteLine(readAsStringAsync);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error processing message: {ex.Message}");
         }
-    }
-
-
-    private class Resp
-    {
-        public required string Content;
     }
 }
