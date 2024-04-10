@@ -16,7 +16,7 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
 
     private readonly Dictionary<string, BaseCommand> _commands = new();
     private readonly string _discordToken = token.Token;
-    private readonly ClientWebSocket _socket = new();
+    private ClientWebSocket _socket = null!;
 
     private int? _currentSequence;
     private BaseMessageTyped<IdentifyParams> _defaultParams = null!;
@@ -28,27 +28,33 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
     public async Task StartAsync()
     {
         _defaultParams = CreateDefaultParams(_discordToken);
-        var cts = new CancellationTokenSource();
         LoadCommands();
-        try
+        var cts = new CancellationTokenSource();
+        _socket = new ClientWebSocket();
+        while (true)
         {
-            await _socket.ConnectAsync(new Uri(GatewayUrl), cts.Token);
-
-            SendWsMessageAsyncType(_defaultParams);
-            // SendWsMessageAsync(_identifyPayload);
-            _ = Task.Run(async () => await ReceiveMessages(cts.Token), cts.Token);
-
-            await Task.Delay(Timeout.Infinite, cts.Token);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
-        }
-        finally
-        {
-            if (_socket.State is WebSocketState.Open or WebSocketState.Connecting)
-                await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
-            _socket.Dispose();
+            try
+            {
+                await _socket.ConnectAsync(new Uri(GatewayUrl), cts.Token);
+                SendWsMessageAsyncType(_defaultParams);
+                _ = Task.Run(async () => await ReceiveMessages(cts.Token), cts.Token);
+                await Task.Delay(Timeout.Infinite, cts.Token);
+            }
+            catch (ReconnectError)
+            {
+                Console.WriteLine("Restarting...");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                // Maybe should exit the program here.
+            }
+            finally
+            {
+                if (_socket.State is WebSocketState.Open or WebSocketState.Connecting)
+                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+                _socket.Dispose();
+            }
         }
     }
 
@@ -83,7 +89,7 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
                     case WebSocketMessageType.Text:
                         var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                         Console.WriteLine(message);
-                        HandleTextFromMessage(message);
+                        HandleTextFromMessage(message, cancellationToken);
                         break;
                     case WebSocketMessageType.Close:
                         await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cancellationToken);
@@ -104,13 +110,18 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
             // Handle operation cancellation
             Console.WriteLine(e);
         }
+        catch (ReconnectError)
+        {
+            // Rethrow here to handle this in the StartAsync method
+            throw;
+        }
         catch (Exception e)
         {
             Console.WriteLine(e);
         }
     }
 
-    private void HandleTextFromMessage(string message)
+    private async void HandleTextFromMessage(string message, CancellationToken cancellationToken)
     {
         var baseMessage = JsonSerializer.Deserialize<BaseMessage>(message);
         // Unable to deserialize message this shouldn't happen.
@@ -141,12 +152,11 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
                 Console.WriteLine("-----------------------------------");
                 break;
             case GatewayOpCode.Reconnect:
-                Console.WriteLine("Reconnect");
-                Console.WriteLine("-----------------------------------");
-                Console.WriteLine("We are trying to reconnect");
-                Console.WriteLine("Server requested a reconnect");
-                Console.WriteLine(baseMessage);
-                Console.WriteLine("-----------------------------------");
+                // Basically reconnect means that something seriously went wrong and the websocket has been invalidated. 
+                // Seems like this only happens after a few hours. Not too sure if we are missing an event or if Heartbeat is not working.
+                // Discord.Net seems to throw an exception when this happens. So I am assuming it's a Heartbeat issue.
+                // For now we will just restart the entire DiscordBot and run it again.
+                await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cancellationToken);
                 break;
             case GatewayOpCode.InvalidSession:
                 Console.WriteLine("InvalidSession");
