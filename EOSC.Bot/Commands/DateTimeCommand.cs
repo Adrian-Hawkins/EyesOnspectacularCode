@@ -21,7 +21,7 @@ public class DateTimeCommand : BaseCommand
         if (parsedList.Count() != 3)
         {
             await SendMessageAsync("Usage: !datetime <(dateTimeString)> <(originalFormat)> <(desiredFormat)>",
-                message.ChannelId, botToken);
+                message, botToken);
             return;
         }
 
@@ -34,6 +34,7 @@ public class DateTimeCommand : BaseCommand
             originalFormat,
             desiredFormat
         );
+        _apiCallService.SetHeader(message.Author.GlobalName);
         var response =
             await _apiCallService.MakeApiCall<DatetimeRequest, DateTimeConversionResponse>(
                 "/api/Datetime",
@@ -42,11 +43,11 @@ public class DateTimeCommand : BaseCommand
 
         try
         {
-            await SendMessageAsync(response.ConvertedTime, message.ChannelId, botToken);
+            await SendMessageAsync(response.ConvertedTime, message, botToken);
         }
         catch (Exception ex)
         {
-            await SendMessageAsync($"Error: {ex.Message}", message.ChannelId, botToken);
+            await SendMessageAsync($"Error: {ex.Message}", message, botToken);
         }
     }
 }

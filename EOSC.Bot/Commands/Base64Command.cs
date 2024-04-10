@@ -15,9 +15,11 @@ public class Base64Command : BaseCommand
     {
         if (args.Count <= 1)
         {
-            await SendMessageAsync("Usage: b64 [-e|-d] <message>", message.ChannelId, botToken);
+            await SendMessageAsync("Usage: b64 [-e|-d] <message>", message, botToken);
             return;
         }
+
+        _apiCallService.SetHeader(message.Author.GlobalName);
 
         var type = args.FirstOrDefault()!;
         args.RemoveAt(0);
@@ -29,7 +31,7 @@ public class Base64Command : BaseCommand
                     await _apiCallService.MakeApiCall<Base64EncodeRequest, Base64EncodeResponse>(
                         "/api/b64e",
                         new Base64EncodeRequest(messageJoined));
-                await SendMessageAsync(base64EncodeResponse.EncodedMessage, message.ChannelId, botToken);
+                await SendMessageAsync(base64EncodeResponse.EncodedMessage, message, botToken);
                 break;
 
             case "-d":
@@ -37,7 +39,7 @@ public class Base64Command : BaseCommand
                     await _apiCallService.MakeApiCall<Base64DecodeRequest, Base64DecodeResponse>(
                         "/api/b64d",
                         new Base64DecodeRequest(messageJoined));
-                await SendMessageAsync(base64DecodeResponse.DecodedMessage, message.ChannelId, botToken);
+                await SendMessageAsync(base64DecodeResponse.DecodedMessage, message, botToken);
                 break;
         }
     }

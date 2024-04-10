@@ -16,7 +16,7 @@ namespace EOSC.Bot.Commands
 			string content = $"Please format (tabs = 4 spaces) the following HTML, I am using it in an application so please don't return anything besides the formatted HTML: {message.Content}";
 			if (content == null)
 			{
-				await SendMessageAsync("Usage: !htmlformat <html>", message.ChannelId, botToken);
+				await SendMessageAsync("Usage: !htmlformat <html>", message, botToken);
 				return;
 			}
 
@@ -33,11 +33,11 @@ namespace EOSC.Bot.Commands
 			try
 			{
 
-				await SendMessageAsync(response.responseString, message.ChannelId, botToken);
+				await SendMessageAsync(response.responseString, message, botToken);
 			}
 			catch (Exception ex)
 			{
-				await SendMessageAsync($"ErrorHFC: {ex.Message}", message.ChannelId, botToken);
+				await SendMessageAsync($"ErrorHFC: {ex.Message}", message, botToken);
 			}
 		}
 	}

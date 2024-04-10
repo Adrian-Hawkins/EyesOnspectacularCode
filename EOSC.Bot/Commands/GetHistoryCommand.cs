@@ -14,11 +14,12 @@ public class GetHistoryCommand : BaseCommand
 
     public override async Task SendCommand(string discordToken, List<string> args, Message message)
     {
+        _apiCallService.SetHeader(message.Author.GlobalName);
         var result =
             await _apiCallService.MakeGetApiCall<HistoryResponse>(
                 $"/api/history/{message.Author.GlobalName}"
             );
-
+        
         var response = $@"History found for <@{message.Author.Id}>: \n\n";
         if (result?.history == null)
             response = $"No history found for <@{message.Author.Id}>";
@@ -29,6 +30,6 @@ public class GetHistoryCommand : BaseCommand
                 response += $"{clean}\\n\\n";
             }
 
-        await SendMessageAsync($"{response}", message.ChannelId, discordToken);
+        await SendMessageAsync($"{response}", message, discordToken);
     }
 }

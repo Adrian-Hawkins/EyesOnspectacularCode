@@ -1,4 +1,5 @@
-﻿using EOSC.API.Infra;
+﻿using EOSC.API.Attributes;
+using EOSC.API.Infra;
 using EOSC.API.Service.github_auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,15 +14,16 @@ public class AuthController(
 {
     [AllowAnonymous]
     [HttpPost("login")]
+    [Anon]
     public ActionResult Login([FromBody] string request)
     {
         if (!gitHubAuth.IsValidUser())
         {
             return Unauthorized();
         }
-        
+
         var jwtResult = jwtAuthManager.GenerateTokens(gitHubAuth.GetUserName(), DateTime.Now);
-        
+
         return Ok(jwtResult);
     }
 }

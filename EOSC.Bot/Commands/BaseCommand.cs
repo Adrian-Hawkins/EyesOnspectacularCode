@@ -7,11 +7,7 @@ namespace EOSC.Bot.Commands;
 
 public abstract class BaseCommand
 {
-    public string? GetCommandName()
-    {
-        var attribute = Attribute.GetCustomAttribute(GetType(), typeof(CommandAttribute)) as CommandAttribute;
-        return attribute?.CommandName;
-    }
+  
 
     public abstract Task SendCommand(string botToken, List<string> args, Message message);
 
@@ -22,17 +18,21 @@ public abstract class BaseCommand
     }
 
 
-    protected async Task SendMessageAsync(string message, string channelId, string botToken)
+    protected async Task SendMessageAsync(string sendData, Message messageObject, string botToken)
     {
         try
         {
             using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bot {botToken}");
 
-            var url = $"https://discordapp.com/api/v9/channels/{channelId}/messages";
+            var headers = httpClient.DefaultRequestHeaders;
+            headers.Add("Authorization", $"Bot {botToken}");
+            headers.Add("username", messageObject.Author.Username);
+
+
+            var url = $"https://discordapp.com/api/v9/channels/{messageObject.ChannelId}/messages";
             var req = new Resp
             {
-                Content = message
+                Content = sendData
             };
 
             var jsonContent = JsonContent.Create(req, typeof(Resp));
