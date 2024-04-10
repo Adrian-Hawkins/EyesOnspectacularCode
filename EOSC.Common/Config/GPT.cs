@@ -5,11 +5,11 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace EOSC.Bot.Classes.Deserializers
+namespace EOSC.Common.Config
 {
-    public class HeartBeat
+    public class GPT
     {
-        [JsonPropertyName("heartbeat_interval")]
-        public int HeartbeatInterval { get; init; }
+        [JsonPropertyName("key")]
+        public string Token { get; init; } = string.Empty;
     }
 }

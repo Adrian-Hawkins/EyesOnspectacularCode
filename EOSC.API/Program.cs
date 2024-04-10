@@ -1,14 +1,15 @@
+using System.Text;
+using EOSC.API.Attributes;
+using EOSC.API.Infra;
+using EOSC.API.Middleware;
 using EOSC.API.Repo;
 using EOSC.API.Service;
-using System.Text;
-using EOSC.API.Infra;
 using EOSC.API.Service.base64;
 using EOSC.API.Service.github_auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using EOSC.API.Middleware;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -98,6 +99,35 @@ app.UseSwaggerUI();
 
 app.UseAuthorization();
 
+/*app.Use(async (ctx, next) =>
+{
+    /*
+    var path = ctx.Request.Path;
+    if (path.Equals("/login/oauth2/code/github") || path.Equals("/login"))
+    {
+        // No auth on these endpoints
+        await next();
+    }
+    #1#
+
+    // Check discord here as well 
+    if (ctx.GetEndpoint()?.Metadata.GetMetadata<AnonAttribute>() != null)
+    {
+        // Endpoint allows anonymous access
+        await next();
+        return;
+    }
+    
+
+    if (!ctx.User.Identity!.IsAuthenticated)
+    {
+        ctx.Response.StatusCode = 401;
+        await ctx.Response.WriteAsync("Not authenticated");
+        return;
+    }
+
+    await next.Invoke();
+});*/
 
 /*app.Use(async (context, next) =>
 {

@@ -3,8 +3,8 @@ using EOSC.Bot.Classes.Deserializers;
 
 namespace EOSC.Bot.Commands;
 
-[Command("echo")]
-public class EchoCommand : BaseCommand
+[Command("curl")]
+public class CurlConvertCommand : BaseCommand
 {
     public override async Task SendCommand(string botToken, List<string> args, Message message)
     {

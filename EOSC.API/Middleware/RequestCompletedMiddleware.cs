@@ -51,15 +51,14 @@ namespace EOSC.API.Middleware
                         if (context.Request.Headers.TryGetValue("username", out var username))
                         {
                             //TODO: Determine how to get username and call the function using it
-                            //HistoryRepo.UpdateHistory(username!, toolName, responseBodyText, responseBodyText);
+                            await HistoryRepo.UpdateHistory(username!, toolName, responseBodyText, responseBodyText);
+                            // HistoryRepo.Test(username!, toolName, responseBodyText, responseBodyText);
                         }
-
                     }
                 }
 
                 await responseBodyStream.CopyToAsync(originalBodyStream);
             }
         }
-      
     }
 }

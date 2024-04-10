@@ -1,13 +1,7 @@
-﻿namespace EOSC.Bot.Attributes
-{
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public class CommandAttribute : Attribute
-    {
-        public string CommandName { get; }
+﻿namespace EOSC.Bot.Attributes;
 
-        public CommandAttribute(string commandName)
-        {
-            CommandName = commandName;
-        }
-    }
+[AttributeUsage(AttributeTargets.Class)]
+public class CommandAttribute(string commandName) : Attribute
+{
+    public string CommandName { get; } = commandName;
 }

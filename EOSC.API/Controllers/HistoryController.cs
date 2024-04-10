@@ -1,5 +1,6 @@
 ﻿using EOSC.API.Attributes;
 using EOSC.API.Repo;
+using EOSC.Common.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EOSC.API.Controllers
@@ -17,7 +18,7 @@ namespace EOSC.API.Controllers
             {
                 return BadRequest($"Invalid username: {username}");
             }
-            return Ok(history);
+            return Ok(new HistoryResponse(history));
         }
     }
 }

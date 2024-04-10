@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Headers;
+using System.Net.Http.Headers;
 using EOSC.API.Infra;
 using EOSC.API.Service.github_auth;
 using Microsoft.AspNetCore.Authorization;

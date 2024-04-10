@@ -1,51 +1,53 @@
-﻿using EOSC.Common.Services;
-using EOSC.Common.Requests;
-using EOSC.Common.Responses;
+﻿using System.Text.RegularExpressions;
 using EOSC.Bot.Attributes;
 using EOSC.Bot.Classes.Deserializers;
-using System.Text.RegularExpressions;
+using EOSC.Common.Requests;
+using EOSC.Common.Responses;
+using EOSC.Common.Services;
 
-namespace EOSC.Bot.Commands
+namespace EOSC.Bot.Commands;
+
+[Command("datetime")]
+public class DateTimeCommand : BaseCommand
 {
-    [Command("datetime")]
-    public class DateTimeCommand : BaseCommand
-    {
-        private readonly DateTimeService _conversionService;
+    private readonly ApiCallService _apiCallService = new();
 
-        public DateTimeCommand()
+    public override async Task SendCommand(string botToken, List<string> args, Message message)
+    {
+        var content = message.Content;
+        var pattern = @"\((.*?)\)";
+        var matches = Regex.Matches(content, pattern);
+        var parsedList = matches.Select(m => m.Groups[1].Value).ToList();
+        if (parsedList.Count() != 3)
         {
-            _conversionService = new DateTimeService();
+            await SendMessageAsync("Usage: !datetime <(dateTimeString)> <(originalFormat)> <(desiredFormat)>",
+                message, botToken);
+            return;
         }
 
-        public override async Task SendCommand(string botToken, List<string> args, Message message)
-        {
-            string content = message.Content;
-            string pattern = @"\((.*?)\)";
-            MatchCollection matches = Regex.Matches(content, pattern);
-            List<string> parsedList = matches.Cast<Match>().Select(m => m.Groups[1].Value).ToList();
-            if (parsedList.Count() != 3)
-            {
-                await SendMessageAsync("Usage: !datetime <(dateTimeString)> <(originalFormat)> <(desiredFormat)>", message.ChannelId, botToken);
-                return;
-            }
-            string dateTimeString = parsedList[0];
-            string originalFormat = parsedList[1];
-            string desiredFormat = parsedList[2];
-            DatetimeRequest request = new DatetimeRequest
-            (
-                dateTimeString,
-                originalFormat,
-                desiredFormat
+        var dateTimeString = parsedList[0];
+        var originalFormat = parsedList[1];
+        var desiredFormat = parsedList[2];
+        var request = new DatetimeRequest
+        (
+            dateTimeString,
+            originalFormat,
+            desiredFormat
+        );
+        _apiCallService.SetHeader(message.Author.GlobalName);
+        var response =
+            await _apiCallService.MakeApiCall<DatetimeRequest, DateTimeConversionResponse>(
+                "/api/Datetime",
+                request
             );
-            try
-            {
-                DateTimeConversionResponse response = await _conversionService.ConvertDateTime(request);
-                await SendMessageAsync(response.ConvertedTime, message.ChannelId, botToken);
-            }
-            catch (Exception ex)
-            {
-                await SendMessageAsync($"Error: {ex.Message}", message.ChannelId, botToken);
-            }
+
+        try
+        {
+            await SendMessageAsync(response.ConvertedTime, message, botToken);
+        }
+        catch (Exception ex)
+        {
+            await SendMessageAsync($"Error: {ex.Message}", message, botToken);
         }
     }
 }
