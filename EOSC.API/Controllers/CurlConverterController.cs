@@ -1,4 +1,5 @@
 using System.Text;
+using EOSC.API.Attributes;
 using EOSC.API.Dto;
 using EOSC.Common.Requests;
 using EOSC.Common.Responses;
@@ -44,7 +45,7 @@ public class CurlConverterController : ControllerBase
             throw;
         }
     }*/
-
+    [Tool("curlconvert")]
     [HttpPost]
     public async Task<IActionResult> ConvertCurl([FromBody] CurlRequest request)
     {

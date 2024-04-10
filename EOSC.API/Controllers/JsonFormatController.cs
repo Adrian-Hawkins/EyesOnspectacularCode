@@ -15,7 +15,7 @@ public class JsonFormatController : ControllerBase
 {
     private readonly JsonSerializerOptions _options = new() { WriteIndented = true };
 
-    //[Tool("json")]
+    [Tool("jsonpretty")]
     [HttpPost]
     public IActionResult Post([FromBody] JsonPrettyRequest request)
     {
@@ -34,7 +34,7 @@ public class JsonFormatController : ControllerBase
         }
     }
 
-    //[Tool("json")]
+    [Tool("xmlpretty")]
     [HttpPost]
     [Route("xmlpretty")]
     public IActionResult PostXml([FromBody] XmlPrettyRequest request)
@@ -45,7 +45,7 @@ public class JsonFormatController : ControllerBase
             string prettyXml = formatXMl(request.MinifiedXml);
             var response = new XmlPrettyResponse(prettyXml);
             //logic to save to the database
-            return Ok(response);
+            return Ok(response); 
         }
         catch (Exception ex)
         {
