@@ -11,15 +11,14 @@ namespace EOSC.API.Infra;
 
 public interface IJwtAuthManager
 {
-    JwtAuthResult GenerateTokens(string username, DateTime now);
-    (ClaimsPrincipal, JwtSecurityToken?) DecodeJwtToken(string token);
+    JwtAuthResult GenerateToken(string username, DateTime now);
 }
 
 public class JwtAuthManager(JwtTokenConfig jwtTokenConfig) : IJwtAuthManager
 {
     private readonly byte[] _secret = Encoding.ASCII.GetBytes(jwtTokenConfig.Secret);
 
-    public JwtAuthResult GenerateTokens(string username, DateTime now)
+    public JwtAuthResult GenerateToken(string username, DateTime now)
     {
         var shouldAddAudienceClaim = true;
         var jwtToken = new JwtSecurityToken(

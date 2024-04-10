@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Headers;
+using System.Net.Http.Headers;
 using EOSC.API.Infra;
 using EOSC.API.Service.github_auth;
 using Microsoft.AspNetCore.Authorization;
@@ -25,21 +25,20 @@ public class AuthController(
             return Unauthorized();
         }
 
-        var jwtResult = jwtAuthManager.GenerateTokens(gitHubAuth.GetUserName(), DateTime.Now);
+        var jwtResult = jwtAuthManager.GenerateToken(gitHubAuth.GetUserName(), DateTime.Now);
 
         return Ok(jwtResult);
     }
 
     [AllowAnonymous]
-    [HttpPost("/login/oauth2/code/github")]
+    [HttpGet("/login/oauth2/code/github")]
     public async Task<ActionResult> AuthTest([FromQuery] string code)
     {
         try
         {
             var githubAccessAuthorizeValues =
-                configuration.GetSection("github:access_request").Get<GithubAccessTokenRequest>()!;
+                configuration.GetSection("github").Get<GithubAccessTokenRequest>()!;
             githubAccessAuthorizeValues.Code = code;
-
             var response = await _httpClient.PostAsJsonAsync("https://github.com/login/oauth/access_token",
                 githubAccessAuthorizeValues);
             var githubAccessToken = (await response.Content.ReadFromJsonAsync<GithubAccessToken>())!;
@@ -48,7 +47,8 @@ public class AuthController(
                 return BadRequest(githubAccessToken.Error);
             }
 
-            return Ok(githubAccessToken.AccessToken);
+            // return Ok(githubAccessToken.AccessToken);
+            return Redirect("http://localhost:58721?code=" + githubAccessToken.AccessToken);
         }
         catch (Exception e)
         {

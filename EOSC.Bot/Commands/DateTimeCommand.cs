@@ -1,55 +1,53 @@
-﻿using Discord.Commands;
-using EOSC.Common.Services;
+﻿using System.Text.RegularExpressions;
+using EOSC.Bot.Attributes;
+using EOSC.Bot.Classes.Deserializers;
 using EOSC.Common.Requests;
 using EOSC.Common.Responses;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using EOSC.Common.Services;
 
-namespace EOSC.Bot.Commands
+namespace EOSC.Bot.Commands;
+
+[Command("datetime")]
+public class DateTimeCommand : BaseCommand
 {
-    public class DateTimeCommand : ModuleBase<SocketCommandContext>
-    {
-        private readonly DateTimeService _conversionService;
+    private readonly ApiCallService _apiCallService = new();
 
-        public DateTimeCommand()
+    public override async Task SendCommand(string botToken, List<string> args, Message message)
+    {
+        var content = message.Content;
+        var pattern = @"\((.*?)\)";
+        var matches = Regex.Matches(content, pattern);
+        var parsedList = matches.Select(m => m.Groups[1].Value).ToList();
+        if (parsedList.Count() != 3)
         {
-            _conversionService = new DateTimeService();
+            await SendMessageAsync("Usage: !datetime <(dateTimeString)> <(originalFormat)> <(desiredFormat)>",
+                message, botToken);
+            return;
         }
 
-        [Command("convertdatetime")]
-        public async Task ConvertDateTimeAsync([Remainder] string messageContent)
-        {
-            string[] fields = messageContent.Split('(', ')', StringSplitOptions.RemoveEmptyEntries);
-
-            if (fields.Length != 3)
-            {
-                await ReplyAsync("Usage: !convertdatetime <(dateTimeString)> <(originalFormat)> <(desiredFormat)>");
-                return;
-            }
-
-            string dateTimeString = fields[0].Replace("(", "").Replace(")", "");
-            string originalFormat = fields[1].Replace("(", "").Replace(")", ""); ;
-            string desiredFormat = fields[2].Replace("(", "").Replace(")", ""); ;
-
-            DatetimeRequest request = new DatetimeRequest
-            (
-                dateTimeString,
-                originalFormat,
-                desiredFormat
+        var dateTimeString = parsedList[0];
+        var originalFormat = parsedList[1];
+        var desiredFormat = parsedList[2];
+        var request = new DatetimeRequest
+        (
+            dateTimeString,
+            originalFormat,
+            desiredFormat
+        );
+        _apiCallService.SetHeader(message.Author.GlobalName);
+        var response =
+            await _apiCallService.MakeApiCall<DatetimeRequest, DateTimeConversionResponse>(
+                "/api/Datetime",
+                request
             );
 
-            try
-            {
-                DateTimeConversionResponse response = await _conversionService.ConvertDateTime(request);
-                await ReplyAsync($"Converted datetime: {response.ConvertedTime}");
-            }
-            catch (Exception ex)
-            {
-                await ReplyAsync($"Error: {ex.Message}");
-            }
+        try
+        {
+            await SendMessageAsync(response.ConvertedTime, message, botToken);
+        }
+        catch (Exception ex)
+        {
+            await SendMessageAsync($"Error: {ex.Message}", message, botToken);
         }
     }
 }

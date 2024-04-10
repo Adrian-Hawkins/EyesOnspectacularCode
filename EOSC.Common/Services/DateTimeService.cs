@@ -14,7 +14,11 @@ namespace EOSC.Common.Services
 
         public DateTimeService()
         {
-            IConfigurationRoot config = new ConfigurationBuilder().AddUserSecrets<APIEndpoint>().Build();
+            //IConfigurationRoot config = new ConfigurationBuilder().AddUserSecrets<APIEndpoint>().Build();
+            IConfiguration config = new ConfigurationBuilder()
+                 .AddUserSecrets<APIEndpoint>()
+                 .AddEnvironmentVariables()
+                 .Build();
             _apiBaseUrl = config["api:endpoint"] ?? throw new Exception("Please provide api endpoint");
             _httpClient = new HttpClient();
         }

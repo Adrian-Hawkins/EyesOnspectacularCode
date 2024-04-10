@@ -1,0 +1,85 @@
+@page "/curl"
+@using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue
+@inject HttpClient HttpClient
+@using System.Text
+@using EOSC.Common.Requests
+@using EOSC.Common.Responses
+@using EOSC.Common.Services
+
+<PageTitle>Curl Conversion</PageTitle>
+
+<h1>Curl Conversion Tool</h1>
+
+@*
+<p role="status"> @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+*@
+
+
+<div class="input-group mb-3">
+    <button class="btn btn-outline-secondary dropdown-toggle btn-lg px-5" type="button" data-bs-toggle="dropdown" aria-expanded="false">@SwapMode</button>
+    <ul class="dropdown-menu">
+
+        <li>
+            <div class="dropdown-item" @onclick="SetToRust">Rust</div>
+        </li>
+        <li>
+            <div class="dropdown-item" @onclick="SetToJava">Java</div>
+        </li>
+        <li>
+            <div class="dropdown-item" @onclick="SetToPython">Python</div>
+        </li>
+    </ul>
+    <textarea class="form-control" aria-label="With textarea" @bind="Command"></textarea>
+    <button class="btn btn-primary" @onclick="ConvertCurl">Convert</button>
+</div>
+
+<div class="border border-primary rounded bg-light " style="width:100%;height:90%;overflow: scroll;">
+
+    <pre><code class="language-java">@(new MarkupString(_responseMessage))</code></pre>
+
+</div>
+
+@code {
+    private readonly ApiCallService _apiCallService = new();
+    private string? _responseMessage;
+    private string SwapMode { get; set; } = "Rust";
+
+    private string Command { get; set; }="";
+
+    private void SetToRust()
+    {
+        SwapMode = "Rust";
+    }
+
+    private void SetToJava()
+    {
+        SwapMode = "Java";
+    }
+
+    private void SetToPython()
+    {
+        SwapMode = "Python";
+    }
+
+    private async Task ConvertCurl()
+    {
+        try
+        {
+            var requestObject = new CurlRequest(Command,SwapMode);
+            var curlCode =
+                await _apiCallService.MakeApiCall<CurlRequest, CurlResponse>(
+            "/api/CurlConverter",
+                    new CurlRequest(Command, SwapMode));
+
+            _responseMessage = curlCode.code.ToString();
+            }
+            catch (Exception ex)
+            {
+               _responseMessage = $"Error: {ex.Message}";
+            }
+        }
+
+
+}
