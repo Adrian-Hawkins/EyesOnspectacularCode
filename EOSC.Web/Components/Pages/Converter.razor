@@ -1,58 +1,36 @@
 ﻿@page "/yaml-to-json"
-@using EOSC.Common.Services
-@inject ApiCallService _apiCallService
+@using EOSC.Common.Services;
+@using EOSC.Common.Requests
+@using EOSC.Common.Responses
+@inject ApiCallService ApiCallService
 
 <h3>Convert YAML to JSON</h3>
 
 <div class="form-group">
     <label for="yamlInput">Enter YAML data:</label>
-    <textarea class="form-control" id="yamlInput" rows="5" @bind="@yamlData"></textarea>
+    <textarea class="form-control" id="yamlInput" rows="5" @bind="@_yamlData"></textarea>
 </div>
 
-<button class="btn btn-primary" @onclick="ConvertToJSON">Convert</button>
+<button class="btn btn-primary" @onclick="ConvertToJson">Convert</button>
 
-@if (!string.IsNullOrEmpty(jsonData))
+@if (!string.IsNullOrEmpty(_jsonData))
 {
     <div class="mt-3">
         <h4>Converted JSON:</h4>
-        <pre>@jsonData</pre>
+        <pre>@_jsonData</pre>
     </div>
 }
 
 @code {
-    private string yamlData = "";
-    private string jsonData = "";
+    private string _yamlData = "";
+    private string _jsonData = "";
 
-    private async Task ConvertToJSON()
+    private async Task ConvertToJson()
     {
-        // Remove unwanted characters from YAML data
-        yamlData = yamlData.Replace("\"", "'");
-
-        var request = new YamlToJsonRequest(yamlData);
-        var response = 
-        await _apiCallService.MakeApiCall<YamlToJsonRequest, YamlToJsonResponse>(
-            "/api/YamlToJson", 
-            request
-        );
-
-        if (response != null)
-        {
-            jsonData = response.JsonData;
-        }
+        _yamlData = _yamlData.Replace("\"", "'");
+        var request = new YamlToJsonRequest(_yamlData);
+        var response = await ApiCallService.MakeApiCall<YamlToJsonRequest, YamlToJsonResponse>("/api/YamlToJson", request);
+        _jsonData = response.JsonResult;
     }
 
-    public class YamlToJsonRequest
-    {
-        public string YamlData { get; set; }
-
-        public YamlToJsonRequest(string yamlData)
-        {
-            YamlData = yamlData;
-        }
-    }
-
-    public class YamlToJsonResponse
-    {
-        public string JsonData { get; set; }
-    }
 }
