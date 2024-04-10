@@ -1,5 +1,4 @@
-﻿@page "/"
-@using EOSC.Common.Services;
+﻿@page "/yaml-to-json"
 @inject ApiCallService _apiCallService
 
 <h3>Convert YAML to JSON</h3>
@@ -25,10 +24,15 @@
 
     private async Task ConvertToJSON()
     {
+        // Remove unwanted characters from YAML data
         yamlData = yamlData.Replace("\"", "'");
 
         var request = new YamlToJsonRequest(yamlData);
-        var response = await _apiCallService.MakeApiCall<YamlToJsonRequest, YamlToJsonResponse>("/api/YamlToJson", request);
+        var response = 
+        await _apiCallService.MakeApiCall<YamlToJsonRequest, YamlToJsonResponse>(
+            "/api/YamlToJson", 
+            request
+        );
 
         if (response != null)
         {
