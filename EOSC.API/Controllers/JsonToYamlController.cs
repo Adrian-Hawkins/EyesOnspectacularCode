@@ -19,7 +19,7 @@ namespace EOSC.API.Controllers
             string query = $@"
                     Please convert this json to yaml, in your response only provide the converted yaml, only say the word ""invalid"" if the json found is not valid
 
-                    {request.data}
+                    {request.YamlData}
             ";
 
             GPTResponse result = await GPTquery.GenerateText(query);

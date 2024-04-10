@@ -1,6 +1,3 @@
-﻿namespace EOSC.Common.Requests
-{
-    public record YamlToJsonRequest(
-        string data
-    );
-}
+﻿namespace EOSC.Common.Requests;
+
+public record YamlToJsonRequest(string YamlData);

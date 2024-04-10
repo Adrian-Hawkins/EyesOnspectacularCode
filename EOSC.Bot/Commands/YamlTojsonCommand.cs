@@ -25,7 +25,7 @@ namespace EOSC.Bot.Commands
                 request
             );
 
-            await SendMessageAsync($"{response.result}", message.ChannelId, discordToken);
+            await SendMessageAsync($"{response.JsonResult}", message.ChannelId, discordToken);
         }
     }
 }
