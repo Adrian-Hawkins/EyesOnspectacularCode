@@ -14,13 +14,10 @@ namespace EOSC.API.Controllers;
 [ApiController]
 public class CurlConverterController : ControllerBase
 {
-    private readonly ILogger<CurlConverterController> _logger;
-    private readonly HttpClient _client;
-    
+    private readonly HttpClient _client = new();
 
-    public CurlConverterController(ILogger<CurlConverterController> logger)
+    public CurlConverterController()
     {
-        _logger = logger;
         _client = new HttpClient();
     }
     [Tool("curlconvert")]

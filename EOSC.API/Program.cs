@@ -1,17 +1,21 @@
+using System.Net.Http.Headers;
+using System.Text;
+using EOSC.API.Attributes;
+using EOSC.API.Infra;
+using EOSC.API.Middleware;
 using EOSC.API.Repo;
 using EOSC.API.Service;
-using System.Text;
-using EOSC.API.Infra;
 using EOSC.API.Service.base64;
 using EOSC.API.Service.github_auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using EOSC.API.Middleware;
-using Microsoft.AspNetCore.Authorization;
-
+using EOSC.Common.Constant;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
+BotAuth _botAuth = new BotAuth();
 
 // Add services to the container.
 
@@ -78,14 +82,12 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Break if we dont have EOSCDB
-string connectionString = builder.Configuration.GetConnectionString("EOSCDB")!;
+var connectionString = builder.Configuration.GetConnectionString("EOSCDB")!;
 builder.Services.AddSingleton<IHistoryRepo>(new HistoryRepo());
 builder.Services.AddSingleton<IHistoryService, HistoryService>();
 
 
 var app = builder.Build();
-
-app.UseMiddleware<RequestCompletedMiddleware>();
 
 // Configure the HTTP request pipeline.
 // if (app.Environment.IsDevelopment())
@@ -99,16 +101,27 @@ app.UseSwaggerUI();
 
 app.UseAuthorization();
 
-/*app.Use(async (ctx, next) =>
+app.Use(async (ctx, next) =>
 {
-    var displayName = ctx.GetEndpoint()!.DisplayName!;
-    if (displayName.Equals("/login/oauth2/code/github") || displayName.Equals("/login"))
+    if (ctx.Request.Headers.TryGetValue("bot", out var bot))
+    {
+        if (bot == _botAuth.GetBotToken())
+        {
+            await next();
+            return;
+        }
+    }
+
+    var path = ctx.Request.Path;
+    if (path.Value != null && (path.Value.Contains("/login/oauth2/code/github") || path.Value.Contains("/api/login")))
     {
         // No auth on these endpoints
         await next();
+        return;
     }
 
-    if (ctx.GetEndpoint()?.Metadata.GetMetadata<IAuthorizeData>() != null)
+    // Check discord here as well 
+    if (ctx.GetEndpoint()?.Metadata.GetMetadata<AnonAttribute>() != null)
     {
         // Endpoint allows anonymous access
         await next();
@@ -123,32 +136,28 @@ app.UseAuthorization();
         return;
     }
 
+    var claim = ctx.User.Claims.ToList().Find(c => c.Type == "token");
+    if (claim != null)
+    {
+        var claimValue = claim.Value;
+        var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+        httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + claimValue);
+        // Why does this not tell us to use and agent :(
+        httpClient.DefaultRequestHeaders.Add("User-Agent", "Awesome-Octocat-App");
+        var gitHubLogin = await httpClient.GetFromJsonAsync<GitHubLogin>("https://api.github.com/user");
+        var name = gitHubLogin.Login;
+        var identity = (ClaimsIdentity)ctx.User.Identity;
+        identity.AddClaim(new Claim("username", name));
+
+        await next();
+        return;
+
+    }
+
     await next.Invoke();
-});*/
-
-/*app.Use(async (context, next) =>
-{
-    var authHeader = context.Request.Headers.TryGetValue("Authorization", out var authHeaderValue);
-
-    if (!authHeader)
-    {
-        //todo: un-auth:
-    }
-
-    // Remove the 'Bearer ' if it exists.
-    var token = authHeaderValue.ToString()["Bearer ".Length..].Trim();
-
-    if (token.Equals("test token"))
-    {
-        await next.Invoke();
-    }
-
-
-    // var key = Encoding.ASCII.GetBytes(JwtSecretKey);
-
-    // Do work that can write to the Response.
-    // Do logging or other work that doesn't write to the Response.
-});*/
+});
+app.UseMiddleware<RequestCompletedMiddleware>();
 
 
 app.MapControllers();

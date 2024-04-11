@@ -2,7 +2,7 @@
 @using EOSC.Common.Requests
 @using EOSC.Common.Responses
 @using EOSC.Common.Services
-@inject DateTimeService DateTimeService
+@inject ApiCallService _apiCallService
 
 <h3>Date/Time Conversion</h3>
 
@@ -54,7 +54,11 @@
             }
 
             var request = new DatetimeRequest(dateTimeString.Trim(), originalFormat.Trim(), desiredFormat.Trim());
-            var response = await DateTimeService.ConvertDateTime(request);
+            var response =
+            await _apiCallService.MakeApiCall<DatetimeRequest, DateTimeConversionResponse>(
+                "/api/Datetime",
+                request
+            );
             convertedTime = response.ConvertedTime;
         }
         catch (Exception ex)

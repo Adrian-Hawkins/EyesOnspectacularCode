@@ -17,21 +17,21 @@ public class JsonPrettyCommand : BaseCommand
 
         if (message.Content.Split(" ").Length <=1)
         {
-            await SendMessageAsync("Usage: !jsonpretty <json>", message.ChannelId, discordToken);
+            await SendMessageAsync("Usage: !jsonpretty <json>", message, discordToken);
             return;
         }
 
-        string jsonString = message.Content.Substring("!jsonpretty ".Length);
+        string jsonString = message.Content["!jsonpretty ".Length..];
         var response = await JsonPrettier(jsonString);
 
-        await SendMessageAsync($"```{response}```", message.ChannelId, discordToken);
+        await SendMessageAsync($"```{response}```", message, discordToken);
     }
 
-    private async Task<string> JsonPrettier(string InputText)
+    private async Task<string> JsonPrettier(string inputText)
     {
         try
         {
-            var requestObject = new JsonPrettyRequest(InputText);
+            var requestObject = new JsonPrettyRequest(inputText);
             var JsonPretty =
                 await _apiCallService.MakeApiCall<JsonPrettyRequest, JsonPrettyResponse>(
                 "/api/JsonFormat",

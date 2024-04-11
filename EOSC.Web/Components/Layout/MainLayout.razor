@@ -1,19 +1,33 @@
 ﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using EOSC.Common.Services
+@inject ProtectedLocalStorage ProtectedLocalStore
+@inject ApiCallService ApiCallService
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+    @if (Data != null)
+    {
+        <div class="sidebar">
+            <NavMenu/>
+        </div>
+    }
+
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <a href="https://github.com/Adrian-Hawkins/EyesOnspectacularCode" target="_blank">About</a>
         </div>
 
         <article class="content px-4" style="height: 80vh; width:85vw;">
+            @if (Data == null)
+            {
+                <a class="github-login-button" href="https://github.com/login/oauth/authorize?scope=user:email&client_id=1502c5036e3f64272024">Login with GitHub</a>
+            }
             @Body
         </article>
     </main>
+
+
 </div>
 
 <div id="blazor-error-ui">
@@ -21,3 +35,47 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+<style>
+    .github-login-button {
+        background-color: #24292e;
+        color: #ffffff;
+        border: none;
+        border-radius: 4px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .github-login-button:hover {
+        background-color: #2ea44f;
+    }
+</style>
+
+@code
+{
+    private string? Data { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // May be bad to have this run every repaint but we kind of need it 
+        await LoadStateAsync();
+
+        if (firstRender)
+        {
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        var result = await ProtectedLocalStore.GetAsync<string>("token");
+        Data = result.Success ? result.Value : null;
+        if (Data != null)
+        {
+            // Most probably did not need local storage cus we have ApiCallService as inject
+            ApiCallService.SetAuthorization(Data);
+        }
+    }
+}

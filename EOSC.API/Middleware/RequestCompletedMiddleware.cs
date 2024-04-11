@@ -22,7 +22,6 @@ namespace EOSC.API.Middleware
         /// <returns></returns>
         public async Task InvokeAsync(HttpContext context)
         {
-            //TODO: See if this code can be imporved by only getting the response and request if the tool decorator is found
             var originalBodyStream = context.Response.Body;
             using (var requestBodyStream = new MemoryStream())
             using (var responseBodyStream = new MemoryStream())
@@ -48,18 +47,19 @@ namespace EOSC.API.Middleware
                     if (toolAttribute != null)
                     {
                         var toolName = toolAttribute.ToolName;
-                        if (context.Request.Headers.TryGetValue("username", out var username))
+                        var claimUsername = context.User.Claims.ToList().Find(c => c.Type == "username");
+                        if (claimUsername != null)
                         {
-                            //TODO: Determine how to get username and call the function using it
-                            //HistoryRepo.UpdateHistory(username!, toolName, responseBodyText, responseBodyText);
+                            await HistoryRepo.UpdateHistory(claimUsername.Value, toolName, requestBodyText, responseBodyText);
                         }
-
+                        else if (context.Request.Headers.TryGetValue("username", out var username))
+                        {
+                            await HistoryRepo.UpdateHistory(username!, toolName, responseBodyText, responseBodyText);
+                        }
                     }
                 }
-
                 await responseBodyStream.CopyToAsync(originalBodyStream);
             }
         }
-      
     }
 }
