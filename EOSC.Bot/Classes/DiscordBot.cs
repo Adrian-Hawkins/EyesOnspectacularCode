@@ -8,6 +8,7 @@ using EOSC.Bot.Commands;
 using EOSC.Bot.Config;
 using EOSC.Bot.Interfaces.Classes;
 
+
 namespace EOSC.Bot.Classes;
 
 public class DiscordBot(DiscordToken token) : IDiscordBot
@@ -24,12 +25,15 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
 
     // We need to make this buffer large enough to hold the entire message. 
     private const int ReceiveBufferSize = 1024 * 16;
+    private const int HeartbeatInterval = 30 * 1000;
+    private CancellationTokenSource _cts;
 
     public async Task StartAsync()
     {
         _defaultParams = CreateDefaultParams(_discordToken);
         LoadCommands();
         var cts = new CancellationTokenSource();
+        _cts = new CancellationTokenSource();
         _socket = new ClientWebSocket();
         while (true)
         {
@@ -38,6 +42,7 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
                 await _socket.ConnectAsync(new Uri(GatewayUrl), cts.Token);
                 SendWsMessageAsyncType(_defaultParams);
                 _ = Task.Run(async () => await ReceiveMessages(cts.Token), cts.Token);
+                _ = Task.Run(HeartbeatLoop, _cts.Token);
                 await Task.Delay(Timeout.Infinite, cts.Token);
             }
             catch (ReconnectError)
@@ -57,6 +62,38 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
             }
         }
     }
+
+    private async Task HeartbeatLoop()
+    {
+        while (!_cts.Token.IsCancellationRequested)
+        {
+            try
+            {
+                // Send heartbeat message
+                SendHeartbeat();
+                await Task.Delay(HeartbeatInterval, _cts.Token);
+            }
+            catch (TaskCanceledException)
+            {
+                // Heartbeat loop was canceled
+                break;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Heartbeat error: {ex.Message}");
+            }
+        }
+    }
+
+    private void SendHeartbeat()
+    {
+        // Assuming your heartbeat message is JSON formatted
+        string heartbeatMessage = "{\"op\": 1, \"d\": null}";
+
+        byte[] bytes = Encoding.UTF8.GetBytes(heartbeatMessage);
+        _socket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, _cts.Token);
+    }
+
 
 
     private void LoadCommands()
