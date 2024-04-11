@@ -69,18 +69,21 @@
     }
 
     private async Task formatText(){
+        if (!string.IsNullOrEmpty(InputText))
+        {
+            switch (SwapMode)
+            {
+                case "JSON":
+                    _responseMessage = await JsonPrettier();
+                    break;
+                case "XML":
+                    _responseMessage = await formatXMl();
+                    break;
+                case "HTML":
+                    _responseMessage = await formatHTML();
+                    break;
 
-        switch(SwapMode){
-            case "JSON":
-                _responseMessage = await JsonPrettier();
-                break;
-            case "XML":
-                _responseMessage = await formatXMl();
-                break;
-            case "HTML":
-                _responseMessage = await formatXMl();
-                break;
-
+            }
         }
 
     }
@@ -103,6 +106,34 @@
             }
         }
         return formattedXml;
+    }
+
+    private async Task<string> formatHTML()
+    {
+
+        string formattedHtml;
+        try
+        {
+            string content = $"Please format (tabs = 4 spaces) the following HTML, I am using it in an application so please don't return anything besides the formatted HTML: {InputText}";
+
+            GPTRequest request = new GPTRequest
+            (
+                content
+            );
+            var response =
+            await _apiCallService.MakeApiCall<GPTRequest, GPTResponse>(
+                "/api/GPT",
+                request
+            );
+
+            formattedHtml = response.responseString;
+        }
+        catch (Exception ex)
+            {
+                formattedHtml = "Error: " + ex.Message;
+            }
+
+        return formattedHtml;
     }
 
     private async Task<string> JsonPrettier()

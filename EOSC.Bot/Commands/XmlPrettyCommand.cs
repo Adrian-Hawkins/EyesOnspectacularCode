@@ -17,7 +17,7 @@ public class XmlPrettyCommand : BaseCommand
 
         if (message.Content.Split(" ").Length <= 1)
         {
-            await SendMessageAsync("Usage: !XmlPretty <xml>", message.ChannelId, discordToken);
+            await SendMessageAsync("Usage: !xmlpretty <xml>", message.ChannelId, discordToken);
             return;
         }
 
