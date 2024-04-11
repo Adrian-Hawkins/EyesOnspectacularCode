@@ -1,7 +1,7 @@
 ﻿@page "/history"
 @using EOSC.Common.Responses
 @using EOSC.Common.Services
-@inject ApiCallService _apiCallService
+@inject ApiCallService Api
 
 <h3>History for</h3>
 
@@ -54,7 +54,7 @@ else
         {
             string username = "User1";
             var response =
-            await _apiCallService.MakeGetApiCall<HistoryResponse>(
+            await Api.MakeGetApiCall<HistoryResponse>(
                 $"/api/History/{username}"
             );
             history = response!.history;

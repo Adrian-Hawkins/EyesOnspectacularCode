@@ -2,7 +2,8 @@
 @using EOSC.Common.Services
 @using EOSC.Common.Requests
 @using EOSC.Common.Responses
-@inject ApiCallService _apiCallService
+@inject ApiCallService Api
+
 
 <PageTitle>Formatting Tool</PageTitle>
 
@@ -80,7 +81,7 @@
             {
                 var requestObject = new XmlPrettyRequest(InputText);
                 var jsonPretty =
-                    await _apiCallService.MakeApiCall<XmlPrettyRequest, XmlPrettyResponse>(
+                    await Api.MakeApiCall<XmlPrettyRequest, XmlPrettyResponse>(
                         "/api/JsonFormat/xmlpretty",
                         requestObject);
 
@@ -107,7 +108,7 @@
                 content
             );
             var response =
-            await _apiCallService.MakeApiCall<GPTRequest, GPTResponse>(
+            await Api.MakeApiCall<GPTRequest, GPTResponse>(
                 "/api/GPT",
                 request
             );
@@ -128,7 +129,7 @@
         {
             var requestObject = new JsonPrettyRequest(InputText);
             var jsonPretty =
-                await _apiCallService.MakeApiCall<JsonPrettyRequest, JsonPrettyResponse>(
+                await Api.MakeApiCall<JsonPrettyRequest, JsonPrettyResponse>(
                     "/api/JsonFormat",
                     requestObject);
 
