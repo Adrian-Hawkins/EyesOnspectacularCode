@@ -22,16 +22,18 @@ public class JsonPrettyCommand : BaseCommand
         }
 
         string jsonString = message.Content["!jsonpretty ".Length..];
-        var response = await JsonPrettier(jsonString);
+        var response = await JsonPrettier(jsonString, message);
 
         await SendMessageAsync($"```{response}```", message, discordToken);
     }
 
-    private async Task<string> JsonPrettier(string inputText)
+    private async Task<string> JsonPrettier(string inputText, Message message)
     {
         try
         {
             var requestObject = new JsonPrettyRequest(inputText);
+            _apiCallService.SetHeader(message.Author.GlobalName);
+            _apiCallService.SetCustomHeader("bot", _botAuth.GetBotToken());
             var JsonPretty =
                 await _apiCallService.MakeApiCall<JsonPrettyRequest, JsonPrettyResponse>(
                 "/api/JsonFormat",
