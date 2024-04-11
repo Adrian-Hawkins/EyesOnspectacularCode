@@ -11,6 +11,25 @@ public class ApiCallService
     private readonly string _apiBaseUrl;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
+    public void SetHeader(string username)
+    {
+        _httpClient.DefaultRequestHeaders.Clear();
+        _httpClient.DefaultRequestHeaders.Add("username", username);
+    }
+
+    public void SetCustomHeader(string key, string value)
+    {
+        //_httpClient.DefaultRequestHeaders.Clear();
+        _httpClient.DefaultRequestHeaders.Add(key, value);
+    }
+
+    public void SetAuthorization(string token)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+    }
+
+
     public ApiCallService()
     {
         IConfiguration config = new ConfigurationBuilder()
@@ -30,16 +49,13 @@ public class ApiCallService
         try
         {
             var postAsJsonAsync = await _httpClient.GetAsync(_apiBaseUrl + path);
-
-            var readAsStringAsync = await postAsJsonAsync.Content.ReadAsStringAsync();
-            Console.WriteLine(readAsStringAsync);
             var readFromJsonAsync = await postAsJsonAsync.Content.ReadFromJsonAsync<TO>(_jsonSerializerOptions);
             return readFromJsonAsync;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error: {ex.Message}");
-            return default(TO);
+            return default;
         }
     }
 
@@ -54,7 +70,7 @@ public class ApiCallService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            Console.WriteLine($"Error: {ex.Message} - request: {request}");
             throw;
         }
     }

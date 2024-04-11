@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using EOSC.Bot.Attributes;
 using EOSC.Bot.Classes.Deserializers;
+using EOSC.Common.Constant;
 using EOSC.Common.Requests;
 using EOSC.Common.Responses;
 using EOSC.Common.Services;
@@ -8,9 +9,8 @@ using EOSC.Common.Services;
 namespace EOSC.Bot.Commands;
 
 [Command("datetime")]
-public class DateTimeCommand : BaseCommand
+public partial class DateTimeCommand : BaseCommand
 {
-    private readonly ApiCallService _apiCallService = new();
 
     public override async Task SendCommand(string botToken, List<string> args, Message message)
     {
@@ -18,10 +18,10 @@ public class DateTimeCommand : BaseCommand
         var pattern = @"\((.*?)\)";
         var matches = Regex.Matches(content, pattern);
         var parsedList = matches.Select(m => m.Groups[1].Value).ToList();
-        if (parsedList.Count() != 3)
+        if (parsedList.Count != 3)
         {
             await SendMessageAsync("Usage: !datetime <(dateTimeString)> <(originalFormat)> <(desiredFormat)>",
-                message.ChannelId, botToken);
+                message, botToken);
             return;
         }
 
@@ -34,6 +34,8 @@ public class DateTimeCommand : BaseCommand
             originalFormat,
             desiredFormat
         );
+        _apiCallService.SetHeader(message.Author.GlobalName);
+        _apiCallService.SetCustomHeader("bot", _botAuth.GetBotToken());
         var response =
             await _apiCallService.MakeApiCall<DatetimeRequest, DateTimeConversionResponse>(
                 "/api/Datetime",
@@ -42,11 +44,11 @@ public class DateTimeCommand : BaseCommand
 
         try
         {
-            await SendMessageAsync(response.ConvertedTime, message.ChannelId, botToken);
+            await SendMessageAsync(response.ConvertedTime, message, botToken);
         }
         catch (Exception ex)
         {
-            await SendMessageAsync($"Error: {ex.Message}", message.ChannelId, botToken);
+            await SendMessageAsync($"Error: {ex.Message}", message, botToken);
         }
     }
 }

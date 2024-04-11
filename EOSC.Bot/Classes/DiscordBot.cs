@@ -16,57 +16,45 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
 
     private readonly Dictionary<string, BaseCommand> _commands = new();
     private readonly string _discordToken = token.Token;
-    private readonly ClientWebSocket _socket = new();
+    private ClientWebSocket _socket = null!;
 
     private int? _currentSequence;
+    private BaseMessageTyped<IdentifyParams> _defaultParams = null!;
 
+
+    // We need to make this buffer large enough to hold the entire message. 
+    private const int ReceiveBufferSize = 1024 * 16;
 
     public async Task StartAsync()
     {
-        var cts = new CancellationTokenSource();
+        _defaultParams = CreateDefaultParams(_discordToken);
         LoadCommands();
-        try
+        var cts = new CancellationTokenSource();
+        _socket = new ClientWebSocket();
+        while (true)
         {
-            await _socket.ConnectAsync(new Uri(GatewayUrl), cts.Token);
-            var identifyPayload = $$"""
-                                    {
-                                      "op": 2,
-                                      "d": {
-                                        "token": "{{_discordToken}}",
-                                        "properties": {
-                                          "$os": "linux",
-                                          "$browser": "disco",
-                                          "$device": "disco"
-                                        },
-                                        "compress": true,
-                                        "large_threshold": 250,
-                                        "shard": [0, 1],
-                                        "presence": {
-                                          "activities": [{
-                                            "name": "hard to get ⭐",
-                                            "type": 0
-                                          }],
-                                          "afk": false
-                                        },
-                                        "intents": 3276799
-                                      }
-                                    }
-                                    """;
-
-            SendWsMessageAsync(identifyPayload);
-            _ = Task.Run(async () => await ReceiveMessages(cts.Token), cts.Token);
-
-            await Task.Delay(Timeout.Infinite, cts.Token);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
-        }
-        finally
-        {
-            if (_socket.State is WebSocketState.Open or WebSocketState.Connecting)
-                await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
-            _socket.Dispose();
+            try
+            {
+                await _socket.ConnectAsync(new Uri(GatewayUrl), cts.Token);
+                SendWsMessageAsyncType(_defaultParams);
+                _ = Task.Run(async () => await ReceiveMessages(cts.Token), cts.Token);
+                await Task.Delay(Timeout.Infinite, cts.Token);
+            }
+            catch (ReconnectError)
+            {
+                Console.WriteLine("Restarting...");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                // Maybe should exit the program here.
+            }
+            finally
+            {
+                if (_socket.State is WebSocketState.Open or WebSocketState.Connecting)
+                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+                _socket.Dispose();
+            }
         }
     }
 
@@ -86,11 +74,11 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
     }
 
 
-    public async Task ReceiveMessages(CancellationToken cancellationToken)
+    private async Task ReceiveMessages(CancellationToken cancellationToken)
     {
         try
         {
-            var buffer = new byte[1024 * 4];
+            var buffer = new byte[ReceiveBufferSize];
             while (_socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
             {
                 var result =
@@ -100,7 +88,8 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
                 {
                     case WebSocketMessageType.Text:
                         var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                        HandleTextFromMessage(message);
+                        Console.WriteLine(message);
+                        HandleTextFromMessage(message, cancellationToken);
                         break;
                     case WebSocketMessageType.Close:
                         await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cancellationToken);
@@ -121,13 +110,18 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
             // Handle operation cancellation
             Console.WriteLine(e);
         }
+        catch (ReconnectError)
+        {
+            // Rethrow here to handle this in the StartAsync method
+            throw;
+        }
         catch (Exception e)
         {
             Console.WriteLine(e);
         }
     }
 
-    private void HandleTextFromMessage(string message)
+    private async void HandleTextFromMessage(string message, CancellationToken cancellationToken)
     {
         var baseMessage = JsonSerializer.Deserialize<BaseMessage>(message);
         // Unable to deserialize message this shouldn't happen.
@@ -158,13 +152,22 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
                 Console.WriteLine("-----------------------------------");
                 break;
             case GatewayOpCode.Reconnect:
-                Console.WriteLine("Reconnect");
+                // Basically reconnect means that something seriously went wrong and the websocket has been invalidated. 
+                // Seems like this only happens after a few hours. Not too sure if we are missing an event or if Heartbeat is not working.
+                // Discord.Net seems to throw an exception when this happens. So I am assuming it's a Heartbeat issue.
+                // For now we will just restart the entire DiscordBot and run it again.
+                await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cancellationToken);
+                break;
+            case GatewayOpCode.InvalidSession:
+                Console.WriteLine("InvalidSession");
                 Console.WriteLine("-----------------------------------");
-                Console.WriteLine("We are trying to reconnect");
-                Console.WriteLine("Server requested a reconnect");
-                Console.WriteLine(baseMessage);
+                Console.WriteLine("We InvalidSession Received");
+                Console.WriteLine("Re-identifying");
+                SendWsMessageAsyncType(_defaultParams);
                 Console.WriteLine("-----------------------------------");
                 break;
+
+            case GatewayOpCode.Identify:
             default:
                 Console.WriteLine("Other Event");
                 Console.WriteLine("-----------------------------------");
@@ -210,10 +213,15 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
         _socket.SendAsync(segment, WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
-    //TODO: Remove if unused later
     private void SendWsMessageAsyncType<T>(T data)
     {
         var json = JsonSerializer.Serialize(data);
+        if (json.Length > 4096)
+        {
+            // TODO: ERROR
+        }
+
+        Console.WriteLine("Sending message via socket: " + json);
         SendWsMessageAsync(json);
     }
 
@@ -223,13 +231,46 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
         if (heartBeat?.HeartbeatInterval != null)
             _ = new Timer(_ =>
                 {
-                    // Need this Ternary as null serialises to literally nothing and we need it to be null  
-                    var heartbeatJson = _currentSequence == null
-                        ? """{"op":1, "d": null}"""
-                        : $$"""{"op":1, "d": {{_currentSequence}}}""";
-                    Console.WriteLine(heartbeatJson);
-                    SendWsMessageAsync(heartbeatJson);
+                    var heartbeatJson = new BaseMessage
+                    {
+                        OpCode = GatewayOpCode.Heartbeat,
+                        SequenceNumber = _currentSequence
+                    };
+                    SendWsMessageAsyncType(heartbeatJson);
                 }, _socket, heartBeat.HeartbeatInterval,
                 heartBeat.HeartbeatInterval);
+    }
+
+    private static BaseMessageTyped<IdentifyParams> CreateDefaultParams(string token)
+    {
+        return new BaseMessageTyped<IdentifyParams>
+        {
+            OpCode = GatewayOpCode.Identify,
+            SequenceNumber = null,
+            EventName = "IDENTIFY",
+            Data = new IdentifyParams
+            {
+                Token = token,
+                Properties = new Dictionary<string, string>
+                {
+                    { "$os", "linux" },
+                    { "$device", "EOSC" },
+                    { "$browser", "EOSC" }
+                },
+                ShardingParams = [0, 1],
+                Intents = 3276799,
+                Presence = new PresenceParams
+                {
+                    Activities =
+                    [
+                        new ActivityParams
+                        {
+                            Name = "hard to get ⭐",
+                            Type = 0
+                        }
+                    ]
+                }
+            }
+        };
     }
 }
