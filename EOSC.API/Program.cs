@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text;
 using EOSC.API.Attributes;
 using EOSC.API.Infra;
@@ -113,7 +114,7 @@ app.Use(async (ctx, next) =>
     }
 
     var path = ctx.Request.Path;
-    if (path.Value != null && (path.Value.Contains("/login/oauth2/code/github") || path.Value.Contains("/login")))
+    if (path.Value != null && (path.Value.Contains("/login/oauth2/code/github") || path.Value.Contains("/api/login")))
     {
         // No auth on these endpoints
         await next();
@@ -134,6 +135,20 @@ app.Use(async (ctx, next) =>
         ctx.Response.StatusCode = 401;
         await ctx.Response.WriteAsync("Not authenticated");
         return;
+    }
+
+    var claim = ctx.User.Claims.ToList().Find(c => c.Type == "token");
+    if (claim != null)
+    {
+        var claimValue = claim.Value;
+        var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+        httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + claimValue);
+        // Why does this not tell us to use and agent :(
+        httpClient.DefaultRequestHeaders.Add("User-Agent", "Awesome-Octocat-App");
+        var gitHubLogin = await httpClient.GetFromJsonAsync<GitHubLogin>("https://api.github.com/user");
+        var name = gitHubLogin.Login;
+        
     }
 
     await next.Invoke();

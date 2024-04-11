@@ -1,6 +1,8 @@
+using System.Net;
 using System.Net.Http.Headers;
 using EOSC.API.Infra;
 using EOSC.API.Service.github_auth;
+using EOSC.Common.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,6 +33,15 @@ public class AuthController(
     }*/
 
     [AllowAnonymous]
+    [HttpPost("/api/login")]
+    public ActionResult Login([FromBody] AuthWowCool request)
+    {
+        var jwtAuthResult = jwtAuthManager.GenerateToken(request.Data, DateTime.Now);
+        return Ok(jwtAuthResult);
+    }
+
+
+    [AllowAnonymous]
     [HttpGet("/login/oauth2/code/github")]
     public async Task<ActionResult> AuthTest([FromQuery] string code)
     {
@@ -47,9 +58,11 @@ public class AuthController(
                 return BadRequest(githubAccessToken.Error);
             }
 
-            var jwtAuthResult = jwtAuthManager.GenerateToken(githubAccessToken.AccessToken!, DateTime.Now);
             // return Ok(githubAccessToken.AccessToken);
-            return Redirect("http://localhost:58721/Login/" + jwtAuthResult.AccessToken);
+            // We wanted to have this but it broke the redirect as JWT Token was too long :(
+            // var redirectResult = Redirect("http://localhost:58721/Login/" + JWT TOKEN!);
+
+            return Redirect("http://localhost:58721/Login/" + githubAccessToken.AccessToken);
         }
         catch (Exception e)
         {

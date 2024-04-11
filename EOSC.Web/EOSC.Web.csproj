@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EOSC.API\EOSC.API.csproj" />
     <ProjectReference Include="..\EOSC.Common\EOSC.Common.csproj" />
   </ItemGroup>
 
