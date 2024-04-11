@@ -10,21 +10,17 @@ namespace EOSC.API.Controllers
     public class HistoryController : ControllerBase
     {
         [HttpGet("{username}")]
-        public async Task<IActionResult> Get(string username, HttpContext context)
+        public async Task<IActionResult> Get(string username)
         {
             string un;
-            var claimUsername = context.User.Claims.ToList().Find(c => c.Type == "username");
-            if (claimUsername != null)
+            var claimUsername = User.Claims.ToList().Find(c => c.Type == "username");
+            if(claimUsername == null)
             {
-                un = claimUsername.Value;
-            }
-            else if (context.Request.Headers.TryGetValue("username", out var uname))
-            {
-                un = uname;
+                un = username;
             }
             else
             {
-                return BadRequest("No username found");
+                un = claimUsername.Value;
             }
 
             List<string> history = HistoryRepo.GetHistory(un);
