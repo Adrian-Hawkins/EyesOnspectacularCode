@@ -1,0 +1,32 @@
+﻿@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedLocalStorage ProtectedLocalStore
+@inject NavigationManager NavigationManager
+@page "/Login/{code}"
+<div style="width:800px; margin:0 auto;">
+    <h3>AUTH LOADING...</h3>
+</div>
+
+@code {
+
+    [Parameter] public string? Code { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadStateAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        if (Code != null)
+        {
+            await ProtectedLocalStore.SetAsync("token", Code);
+            await Task.Delay(1000);
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+}

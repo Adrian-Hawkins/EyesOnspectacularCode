@@ -80,7 +80,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Break if we dont have EOSCDB
-string connectionString = builder.Configuration.GetConnectionString("EOSCDB")!;
+var connectionString = builder.Configuration.GetConnectionString("EOSCDB")!;
 builder.Services.AddSingleton<IHistoryRepo>(new HistoryRepo());
 builder.Services.AddSingleton<IHistoryService, HistoryService>();
 

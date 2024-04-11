@@ -13,7 +13,7 @@ public class ApiCallService
 
     public void SetHeader(string username)
     {
-        //_httpClient.DefaultRequestHeaders.Clear();
+        _httpClient.DefaultRequestHeaders.Clear();
         _httpClient.DefaultRequestHeaders.Add("username", username);
     }
 
@@ -22,6 +22,13 @@ public class ApiCallService
         //_httpClient.DefaultRequestHeaders.Clear();
         _httpClient.DefaultRequestHeaders.Add(key, value);
     }
+
+    public void SetAuthorization(string token)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+    }
+
 
     public ApiCallService()
     {

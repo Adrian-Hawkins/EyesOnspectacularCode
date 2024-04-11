@@ -13,13 +13,16 @@ namespace EOSC.API.Controllers
         [HttpPost]
         public IActionResult Post([FromBody] DatetimeRequest request)
         {
-            DateTime dateTime;
-            if (!DateTime.TryParseExact(request.dateTimeString, request.originalFormat, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out dateTime))
+            if (!DateTime.TryParseExact(request.dateTimeString, request.originalFormat,
+                    System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None,
+                    out var dateTime))
             {
                 return BadRequest($"Invalid date-time string: {request.dateTimeString}");
             }
-            string convertedDateTime = dateTime.ToString(request.desiredFormat, System.Globalization.CultureInfo.InvariantCulture);
-            DateTimeConversionResponse response = new DateTimeConversionResponse(convertedDateTime);
+
+            var convertedDateTime =
+                dateTime.ToString(request.desiredFormat, System.Globalization.CultureInfo.InvariantCulture);
+            var response = new DateTimeConversionResponse(convertedDateTime);
             return Ok(response);
         }
     }

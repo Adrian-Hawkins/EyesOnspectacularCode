@@ -12,19 +12,11 @@ namespace EOSC.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class CurlConverterController : ControllerBase
+public class CurlConverterController(ILogger<CurlConverterController> logger) : ControllerBase
 {
-    private readonly ILogger<CurlConverterController> _logger;
-    private readonly HttpClient _client;
-    
+    private readonly HttpClient _client = new();
 
-    public CurlConverterController(ILogger<CurlConverterController> logger)
-    {
-        _logger = logger;
-        _client = new HttpClient();
-    }
-
-   /* [HttpGet(Name = "toCurl")]
+    /* [HttpGet(Name = "toCurl")]
     public async Task<ConvertedCurlDto?> Get()
     {
         try
