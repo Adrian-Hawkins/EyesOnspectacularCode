@@ -5,7 +5,9 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
+using EOSC.Bot.Classes;
 using Microsoft.IdentityModel.Tokens;
+
 
 namespace EOSC.API.Infra;
 
@@ -63,9 +65,4 @@ public class JwtAuthManager(JwtTokenConfig jwtTokenConfig) : IJwtAuthManager
                 out var validatedToken);
         return (principal, validatedToken as JwtSecurityToken);
     }
-}
-
-public class JwtAuthResult
-{
-    [JsonPropertyName("accessToken")] public string AccessToken { get; set; } = string.Empty;
 }
