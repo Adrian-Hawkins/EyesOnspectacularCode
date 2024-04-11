@@ -1,0 +1,36 @@
+﻿@page "/yaml-to-json"
+@using EOSC.Common.Services;
+@using EOSC.Common.Requests
+@using EOSC.Common.Responses
+@inject ApiCallService ApiCallService
+
+<h3>Convert YAML to JSON</h3>
+
+<div class="form-group">
+    <label for="yamlInput">Enter YAML data:</label>
+    <textarea class="form-control" id="yamlInput" rows="5" @bind="@_yamlData"></textarea>
+</div>
+
+<button class="btn btn-primary" @onclick="ConvertToJson">Convert</button>
+
+@if (!string.IsNullOrEmpty(_jsonData))
+{
+    <div class="mt-3">
+        <h4>Converted JSON:</h4>
+        <pre>@_jsonData</pre>
+    </div>
+}
+
+@code {
+    private string _yamlData = "";
+    private string _jsonData = "";
+
+    private async Task ConvertToJson()
+    {
+        _yamlData = _yamlData.Replace("\"", "'");
+        var request = new YamlToJsonRequest(_yamlData);
+        var response = await ApiCallService.MakeApiCall<YamlToJsonRequest, YamlToJsonResponse>("/api/YamlToJson", request);
+        _jsonData = response.JsonResult;
+    }
+
+}
