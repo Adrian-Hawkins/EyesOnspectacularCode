@@ -9,7 +9,6 @@ namespace EOSC.API.Controllers
     [ApiController]
     public class HistoryController : ControllerBase
     {
-        [Tool("GetHistory")]
         [HttpGet("{username}")]
         public IActionResult Get(string username)
         {
