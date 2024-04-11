@@ -36,7 +36,7 @@ public class CurlConvertCommand : BaseCommand
 
         string language = message.Content.Split(" ")[1];
         string command = "curl " + message.Content.Split("curl ")[1];
-
+        bool isSupported = supportedLanguages.Any(l => string.Equals(l, language, StringComparison.OrdinalIgnoreCase));
         if (supportedLanguages.Contains(language))
         {
             string response = await ConvertCurl(command.Replace("\"", "\'").Replace("\\", ""), language);

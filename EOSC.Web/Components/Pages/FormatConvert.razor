@@ -2,7 +2,7 @@
 @using EOSC.Common.Services
 @using EOSC.Common.Requests
 @using EOSC.Common.Responses
-@inject ApiCallService ApiCallService
+@inject ApiCallService _apiCallService
 
 <PageTitle>Formatting Tool</PageTitle>
 
@@ -80,7 +80,7 @@
             {
                 var requestObject = new XmlPrettyRequest(InputText);
                 var jsonPretty =
-                    await ApiCallService.MakeApiCall<XmlPrettyRequest, XmlPrettyResponse>(
+                    await _apiCallService.MakeApiCall<XmlPrettyRequest, XmlPrettyResponse>(
                         "/api/JsonFormat/xmlpretty",
                         requestObject);
 
@@ -94,13 +94,41 @@
         return formattedXml;
     }
 
+    private async Task<string> formatHTML()
+    {
+
+        string formattedHtml;
+        try
+        {
+            string content = $"Please format (tabs = 4 spaces) the following HTML, I am using it in an application so please don't return anything besides the formatted HTML: {InputText}";
+
+            GPTRequest request = new GPTRequest
+            (
+                content
+            );
+            var response =
+            await _apiCallService.MakeApiCall<GPTRequest, GPTResponse>(
+                "/api/GPT",
+                request
+            );
+
+            formattedHtml = response.responseString;
+        }
+        catch (Exception ex)
+            {
+                formattedHtml = "Error: " + ex.Message;
+            }
+
+        return formattedHtml;
+    }
+
     private async Task<string> JsonPrettier()
     {
         try
         {
             var requestObject = new JsonPrettyRequest(InputText);
             var jsonPretty =
-                await ApiCallService.MakeApiCall<JsonPrettyRequest, JsonPrettyResponse>(
+                await _apiCallService.MakeApiCall<JsonPrettyRequest, JsonPrettyResponse>(
                     "/api/JsonFormat",
                     requestObject);
 
