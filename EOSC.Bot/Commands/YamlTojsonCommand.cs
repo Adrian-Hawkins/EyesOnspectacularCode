@@ -9,21 +9,17 @@ namespace EOSC.Bot.Commands
     [Command("YamlToJson")]
     public class YamlTojsonCommand : BaseCommand
     {
+        private readonly ApiCallService _apiCallService = new();
+
         public override async Task SendCommand(string discordToken, List<string> args, Message message)
         {
-            string yaml = string.Join(" ", args).Replace("\"", "'");
-
-            var request = new YamlToJsonRequest
-            (
-                yaml
-            );
-            _apiCallService.SetHeader(message.Author.GlobalName);
-            _apiCallService.SetCustomHeader("bot", _botAuth.GetBotToken());
+            var yaml = string.Join(" ", args).Replace("\"", "'");
+            var request = new YamlToJsonRequest(yaml);
             var response =
-            await _apiCallService.MakeApiCall<YamlToJsonRequest, YamlToJsonResponse>(
-                "/api/YamlToJson",
-                request
-            );
+                await _apiCallService.MakeApiCall<YamlToJsonRequest, YamlToJsonResponse>(
+                    "/api/YamlToJson",
+                    request
+                );
 
             await SendMessageAsync($"{response.JsonResult}", message, discordToken);
         }
