@@ -15,7 +15,9 @@ public class HelpCommand : BaseCommand
     3. `!GetHistory`: Returns the history of queries and responses for the current user.
     4. `!curlconvert`: Converts curl commands to a language of your choice.
     5. `!htmlformat`: Formats unformatted HTML.
-    6. `!jsonpretty`: Formates unformatted JSON.
+    6. `!jsonpretty`: Formats unformatted JSON.
+    7. `!JsonToYaml`: Converts JSON to YAML.
+    8. `!YamlToJson`: Converts YAML to JSON.
 
     **Usage:**
 
@@ -30,6 +32,8 @@ public class HelpCommand : BaseCommand
       `!curlconvert java curl -X POST http://example.com/api/endpoint -H ""Content-Type: application/json"" -d ""{key1:value1, key2:value2}""`
     - `!htmlformat <html>`
     - `!jsonpretty <json>`
+    - `!JsonToYaml <json>`
+    - `!YamlToJson <yaml>`
     "
 		, message, discordToken);
 	}
