@@ -13,21 +13,38 @@ public class GetHistoryCommand : BaseCommand
     {
         _apiCallService.SetHeader(message.Author.GlobalName);
         _apiCallService.SetCustomHeader("bot", _botAuth.GetBotToken());
-        var result =
-            await _apiCallService.MakeGetApiCall<HistoryResponse>(
-                $"/api/history/{message.Author.GlobalName}"
-            );
-        
-        var response = $@"History found for <@{message.Author.Id}>: \n\n";
+        var result = await _apiCallService.MakeGetApiCall<HistoryResponse>(
+            $"/api/history/{message.Author.GlobalName}"
+        );
+
+        var response = $"History found for <@{message.Author.Id}>:\n\n";
         if (result?.history == null)
+        {
             response = $"No history found for <@{message.Author.Id}>";
+        }
         else
+        {
+            var totalLength = response.Length;
+            var truncated = false;
             foreach (var item in result.history)
             {
                 var clean = item.Replace("\"", "");
-                response += $"{clean}\\n\\n";
+                var itemLength = clean.Length + 4; // Add 4 for "\n\n"
+                if (totalLength + itemLength > 1997)
+                {
+                    truncated = true;
+                    break;
+                }
+                response += $"{clean}\n\n";
+                totalLength += itemLength;
             }
 
-        await SendMessageAsync($"{response}", message, discordToken);
+            if (truncated)
+            {
+                response = response.Substring(0, Math.Min(response.Length, 1997)) + "...";
+            }
+        }
+
+        await SendMessageAsync(response, message, discordToken);
     }
 }
