@@ -6,33 +6,35 @@
 
 <h3>Date/Time Conversion</h3>
 
-<div>
-    <label>
-        Date/Time String:
-        <input @bind="dateTimeString" />
-    </label>
+<div class="container mt-4">
+    <div class="mb-3">
+        <label for="dateTimeString" class="form-label">Date/Time String:</label>
+        <input type="text" class="form-control" id="dateTimeString" @bind="dateTimeString">
+    </div>
+
+    <div class="mb-3">
+        <label for="originalFormat" class="form-label">Original Format:</label>
+        <input type="text" class="form-control" id="originalFormat" @bind="originalFormat">
+    </div>
+
+    <div class="mb-3">
+        <label for="desiredFormat" class="form-label">Desired Format:</label>
+        <input type="text" class="form-control" id="desiredFormat" @bind="desiredFormat">
+    </div>
+
+    <button type="button" class="btn btn-primary" @onclick="ConvertDateTime">Convert</button>
 </div>
 
-<div>
-    <label>
-        Original Format:
-        <input @bind="originalFormat" />
-    </label>
-</div>
-
-<div>
-    <label>
-        Desired Format:
-        <input @bind="desiredFormat" />
-    </label>
-</div>
-
-<button @onclick="ConvertDateTime">Convert</button>
 
 @if (!string.IsNullOrEmpty(convertedTime))
 {
-    <div>
-        Converted Time: @convertedTime
+    <div class="d-flex justify-content-center align-items-center">
+        <div class="card text-center" style="width: 18rem; border-radius: 20px; background-color: #fce4ec;">
+            <div class="card-body">
+            <h5 class="card-title" style="color: #0D47A1;">Converted Time</h5>
+            <p class="card-text" style="color: #1A237E;">@convertedTime</p>
+            </div>
+        </div>
     </div>
 }
 
@@ -46,7 +48,12 @@
     {
         try
         {
-            var request = new DatetimeRequest(dateTimeString, originalFormat, desiredFormat);
+            if (string.IsNullOrEmpty(dateTimeString) || string.IsNullOrEmpty(originalFormat) || string.IsNullOrEmpty(desiredFormat))
+            {
+                return;
+            }
+
+            var request = new DatetimeRequest(dateTimeString.Trim(), originalFormat.Trim(), desiredFormat.Trim());
             var response =
             await _apiCallService.MakeApiCall<DatetimeRequest, DateTimeConversionResponse>(
                 "/api/Datetime",

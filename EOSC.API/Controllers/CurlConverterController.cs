@@ -12,31 +12,14 @@ namespace EOSC.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class CurlConverterController(ILogger<CurlConverterController> logger) : ControllerBase
+public class CurlConverterController : ControllerBase
 {
     private readonly HttpClient _client = new();
 
-    /* [HttpGet(Name = "toCurl")]
-    public async Task<ConvertedCurlDto?> Get()
+    public CurlConverterController()
     {
-        try
-        {
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://curlconv.netlify.app/convert")
-            {
-                Content = new StringContent("", Encoding.UTF8, "application/json")
-            };
-
-            var response = await _client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-            var curlDto = await response.Content.ReadFromJsonAsync<ConvertedCurlDto>();
-            return curlDto;
-        }
-        catch (Exception ex)
-        {
-            //TODO: Handle exceptions here
-            throw;
-        }
-    }*/
+        _client = new HttpClient();
+    }
     [Tool("curlconvert")]
     [HttpPost]
     public async Task<IActionResult> ConvertCurl([FromBody] CurlRequest request)
@@ -46,7 +29,7 @@ public class CurlConverterController(ILogger<CurlConverterController> logger) : 
             Console.WriteLine("Received Object : " + request);
             string prettyXml = await MakeHttpRequest(request.command,request.language);
             var response = new CurlResponse(prettyXml);
-            //logic to save to the database
+            
             return Ok(response);
         }
         catch (Exception ex)
