@@ -29,4 +29,4 @@ jobs:
       - name: Delete old container
         run: sudo docker rm -f eosc-bot-container
       - name: Run container
-        run: sudo docker run -d -e Discord:Token=${{secrets.DISCORD_TOKEN}} -e api:endpoint=${{secrets.API_ENDPOINT}} --name eosc-bot-container ${{secrets.DOCKER_USERNAME}}/eoscbot:latest
+        run: sudo docker run -d -e Discord:Token=${{secrets.DISCORD_TOKEN}} -e api:endpoint=${{secrets.API_ENDPOINT}} -e bot:token="${{secrets.BOT_TOKEN}}" --name eosc-bot-container ${{secrets.DOCKER_USERNAME}}/eoscbot:latest

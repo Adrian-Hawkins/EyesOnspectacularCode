@@ -7,7 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<DateTimeService>(sp => new DateTimeService());
 builder.Services.AddScoped<ApiCallService>(sp => new ApiCallService());
 
 var app = builder.Build();

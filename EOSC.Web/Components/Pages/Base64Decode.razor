@@ -1,5 +1,8 @@
 ﻿@page "/base64"
 @using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedLocalStorage ProtectedLocalStore
+
 @inject HttpClient HttpClient
 @using EOSC.Common.Requests
 @using EOSC.Common.Responses
@@ -9,8 +12,13 @@
 
 <h1>Base 64 Decode/Encode</h1>
 
+<div class="input-group">
+    <span class="input-group-text">With textarea</span>
+    <textarea class="form-control" aria-label="With textarea"></textarea>
+</div>
+
 <div class="input-group mb-3">
-    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">@SwapMode</button>
+    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
     <ul class="dropdown-menu">
 
         <li>

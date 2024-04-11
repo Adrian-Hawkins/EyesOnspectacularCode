@@ -1,0 +1,39 @@
+﻿@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using EOSC.Common.Services
+@using EOSC.Common.Requests
+@using EOSC.API.Infra
+@inject ProtectedLocalStorage ProtectedLocalStore
+@inject NavigationManager NavigationManager
+@inject ApiCallService ApiCallService
+
+@page "/Login/{code}"
+<div style="width:800px; margin:0 auto;">
+    <h3>AUTH LOADING...</h3>
+</div>
+
+@code {
+
+    [Parameter] public string? Code { get; set; }
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadStateAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        if (Code != null)
+        {
+            var makeGetApiCall = await ApiCallService.MakeApiCall<AuthWowCool, JwtAuthResult>("/api/login", new AuthWowCool(Code));
+            await ProtectedLocalStore.SetAsync("token", makeGetApiCall.AccessToken);
+            await Task.Delay(1000);
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+}

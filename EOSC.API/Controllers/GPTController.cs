@@ -8,16 +8,16 @@ using EOSC.Common.Services.ChatGPT;
 
 namespace EOSC.API.Controllers
 {
-	[Route("api/[controller]")]
-	[ApiController]
-	public class GPTController : ControllerBase
-	{
-		// POST api/<GPTController>
-		[HttpPost]
-		public async Task <IActionResult> Post([FromBody] GPTRequest requestString)
-		{
-			GPTResponse generatedText = await GPTquery.GenerateText(requestString.requestString);
-			return Ok(generatedText);
-		}
-	}
+    [Route("api/[controller]")]
+    [ApiController]
+    public class GptController : ControllerBase
+    {
+        // POST api/<GPTController>
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody] GPTRequest requestString)
+        {
+            var generatedText = await GptQuery.GenerateText(requestString.requestString);
+            return Ok(generatedText);
+        }
+    }
 }
