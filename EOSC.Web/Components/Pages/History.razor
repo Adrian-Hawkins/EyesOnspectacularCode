@@ -1,0 +1,88 @@
+﻿@page "/history"
+@using EOSC.Common.Responses
+@using EOSC.Common.Services
+@inject ApiCallService _apiCallService
+
+<h3>History for</h3>
+
+<div>
+    <label for="toolName">Select Tool Name:</label>
+    <select id="toolName" @bind="selectedTool" @oninput="OnToolNameChange">
+        <option value="">-- Select Tool Name --</option>
+        @foreach (var tool in toolNames)
+        {
+            <option value="@tool">@tool</option>
+        }
+    </select>
+</div>
+
+@if (filteredHistory != null)
+{
+    <ul>
+        @foreach (var item in filteredHistory)
+        {
+            <li>@item</li>
+        }
+    </ul>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    private List<string>? history;
+    private List<string>? filteredHistory;
+    private List<string> toolNames = new List<string>();
+    private string selectedTool = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        toolNames.Add("curlconvert");
+        toolNames.Add("datetime");
+        toolNames.Add("GetHistory");
+        toolNames.Add("jsonpretty");
+        toolNames.Add("JsonToYaml");
+        toolNames.Add("YamlToJson");
+        await ConvertDateTime();
+        filteredHistory = history;
+    }
+
+    private async Task ConvertDateTime()
+    {
+        try
+        {
+            string username = "User1";
+            var response =
+            await _apiCallService.MakeGetApiCall<HistoryResponse>(
+                $"/api/History/{username}"
+            );
+            history = response!.history;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private void FilterHistory()
+    {
+        if (!string.IsNullOrEmpty(selectedTool))
+        {
+            filteredHistory = history.Where(item => item.Contains(selectedTool)).ToList();
+        }
+        else
+        {
+            filteredHistory = history;
+        }
+    }
+    private async Task OnToolNameChange(ChangeEventArgs e)
+    {
+        selectedTool = e.Value.ToString();
+        FilterHistory();
+    }
+    protected override void OnParametersSet()
+    {
+        FilterHistory();
+    }
+}
