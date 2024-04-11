@@ -13,8 +13,14 @@ public class ApiCallService
 
     public void SetHeader(string username)
     {
-        _httpClient.DefaultRequestHeaders.Clear();
+        //_httpClient.DefaultRequestHeaders.Clear();
         _httpClient.DefaultRequestHeaders.Add("username", username);
+    }
+
+    public void SetCustomHeader(string key, string value)
+    {
+        //_httpClient.DefaultRequestHeaders.Clear();
+        _httpClient.DefaultRequestHeaders.Add(key, value);
     }
 
     public ApiCallService()

@@ -2,12 +2,16 @@
 using System.Text.Json.Serialization;
 using EOSC.Bot.Attributes;
 using EOSC.Bot.Classes.Deserializers;
+using EOSC.Common.Constant;
+using EOSC.Common.Services;
 
 namespace EOSC.Bot.Commands;
 
 public abstract class BaseCommand
 {
-  
+
+    protected readonly BotAuth _botAuth = new();
+    protected readonly ApiCallService _apiCallService = new();
 
     public abstract Task SendCommand(string botToken, List<string> args, Message message);
 
