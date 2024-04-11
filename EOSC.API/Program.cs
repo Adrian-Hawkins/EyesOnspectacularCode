@@ -10,8 +10,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using EOSC.Common.Constant;
 
 var builder = WebApplication.CreateBuilder(args);
+BotAuth _botAuth = new BotAuth();
 
 // Add services to the container.
 
@@ -99,16 +101,22 @@ app.UseSwaggerUI();
 
 app.UseAuthorization();
 
-/*app.Use(async (ctx, next) =>
+app.Use(async (ctx, next) =>
 {
-    /*
+    if(ctx.Request.Headers.TryGetValue("bot", out var bot))
+    {
+        if (bot == _botAuth.GetBotToken())
+        {
+            await next();
+            return;
+        }
+    }
     var path = ctx.Request.Path;
     if (path.Equals("/login/oauth2/code/github") || path.Equals("/login"))
     {
         // No auth on these endpoints
         await next();
     }
-    #1#
 
     // Check discord here as well 
     if (ctx.GetEndpoint()?.Metadata.GetMetadata<AnonAttribute>() != null)
@@ -127,7 +135,7 @@ app.UseAuthorization();
     }
 
     await next.Invoke();
-});*/
+});
 
 /*app.Use(async (context, next) =>
 {

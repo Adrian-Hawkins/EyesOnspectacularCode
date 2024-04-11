@@ -8,13 +8,11 @@ namespace EOSC.Bot.Commands;
 [Command("GetHistory")]
 public class GetHistoryCommand : BaseCommand
 {
-    private readonly ApiCallService _apiCallService = new();
-
-    // private readonly HistoryService _historyService = new HistoryService();
 
     public override async Task SendCommand(string discordToken, List<string> args, Message message)
     {
         _apiCallService.SetHeader(message.Author.GlobalName);
+        _apiCallService.SetCustomHeader("bot", _botAuth.GetBotToken());
         var result =
             await _apiCallService.MakeGetApiCall<HistoryResponse>(
                 $"/api/history/{message.Author.GlobalName}"

@@ -14,7 +14,6 @@ namespace EOSC.Bot.Commands
     [Command("JsonToYaml")]
     public class JsonToYaml : BaseCommand
     {
-        private readonly ApiCallService _apiCallService = new();
         public override async Task SendCommand(string discordToken, List<string> args, Message message)
         {
             string json = string.Join(" ", args).Replace("\"", "'");
@@ -23,6 +22,8 @@ namespace EOSC.Bot.Commands
             (
                 json
             );
+            _apiCallService.SetHeader(message.Author.GlobalName);
+            _apiCallService.SetCustomHeader("bot", _botAuth.GetBotToken());
 
             var response =
             await _apiCallService.MakeApiCall<YamlToJsonRequest, YamlToJsonResponse>(

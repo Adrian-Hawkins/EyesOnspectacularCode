@@ -10,7 +10,6 @@ namespace EOSC.Bot.Commands
 	[Command("htmlformat")]
 	public class HTMLFormatCommand : BaseCommand
 	{
-		private readonly ApiCallService _apiCallService = new();
 		public override async Task SendCommand(string botToken, List<string> args, Message message)
 		{
 			string content = $"Please format (tabs = 4 spaces) the following HTML, I am using it in an application so please don't return anything besides the formatted HTML: {message.Content}";
@@ -24,7 +23,9 @@ namespace EOSC.Bot.Commands
 			(
 				content
 			);
-			var response =
+            _apiCallService.SetHeader(message.Author.GlobalName);
+            _apiCallService.SetCustomHeader("bot", _botAuth.GetBotToken());
+            var response =
 			await _apiCallService.MakeApiCall<GPTRequest, GPTResponse>(
 				"/api/GPT",
 				request

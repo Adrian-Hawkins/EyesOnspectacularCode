@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using EOSC.Bot.Attributes;
 using EOSC.Bot.Classes.Deserializers;
+using EOSC.Common.Constant;
 using EOSC.Common.Requests;
 using EOSC.Common.Responses;
 using EOSC.Common.Services;
@@ -10,7 +11,6 @@ namespace EOSC.Bot.Commands;
 [Command("datetime")]
 public partial class DateTimeCommand : BaseCommand
 {
-    private readonly ApiCallService _apiCallService = new();
 
     public override async Task SendCommand(string botToken, List<string> args, Message message)
     {
@@ -35,6 +35,7 @@ public partial class DateTimeCommand : BaseCommand
             desiredFormat
         );
         _apiCallService.SetHeader(message.Author.GlobalName);
+        _apiCallService.SetCustomHeader("bot", _botAuth.GetBotToken());
         var response =
             await _apiCallService.MakeApiCall<DatetimeRequest, DateTimeConversionResponse>(
                 "/api/Datetime",

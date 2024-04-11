@@ -17,6 +17,12 @@ public class ApiCallService
         _httpClient.DefaultRequestHeaders.Add("username", username);
     }
 
+    public void SetCustomHeader(string key, string value)
+    {
+        //_httpClient.DefaultRequestHeaders.Clear();
+        _httpClient.DefaultRequestHeaders.Add(key, value);
+    }
+
     public void SetAuthorization(string token)
     {
         _httpClient.DefaultRequestHeaders.Authorization =
