@@ -49,6 +49,9 @@ namespace EOSC.API.Middleware
                     {
                         var toolName = toolAttribute.ToolName;
                         var x = context.User.Claims.ToList().Find(c => c.Type == "username");
+                                                
+                        
+                        
                         if (context.Request.Headers.TryGetValue("username", out var username))
                         {
                             //TODO: Determine how to get username and call the function using it
