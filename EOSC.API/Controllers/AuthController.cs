@@ -16,7 +16,7 @@ public class AuthController(
     private readonly HttpClient _httpClient = new()
         { DefaultRequestHeaders = { Accept = { new MediaTypeWithQualityHeaderValue("application/json") } } };
 
-    [AllowAnonymous]
+    /*[AllowAnonymous]
     [HttpPost("[controller]/login")]
     public ActionResult Login([FromBody] string request)
     {
@@ -28,7 +28,7 @@ public class AuthController(
         var jwtResult = jwtAuthManager.GenerateToken(gitHubAuth.GetUserName(), DateTime.Now);
 
         return Ok(jwtResult);
-    }
+    }*/
 
     [AllowAnonymous]
     [HttpGet("/login/oauth2/code/github")]
@@ -47,9 +47,9 @@ public class AuthController(
                 return BadRequest(githubAccessToken.Error);
             }
 
-            var jwtAuthResult = jwtAuthManager.GenerateToken(githubAccessToken.AccessToken, DateTime.Now);
+            var jwtAuthResult = jwtAuthManager.GenerateToken(githubAccessToken.AccessToken!, DateTime.Now);
             // return Ok(githubAccessToken.AccessToken);
-            return Redirect("http://localhost:58721/Login/" + jwtAuthResult);
+            return Redirect("http://localhost:58721/Login/" + jwtAuthResult.AccessToken);
         }
         catch (Exception e)
         {

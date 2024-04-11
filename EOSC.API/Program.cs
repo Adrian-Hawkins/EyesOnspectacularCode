@@ -103,7 +103,7 @@ app.UseAuthorization();
 
 app.Use(async (ctx, next) =>
 {
-    if(ctx.Request.Headers.TryGetValue("bot", out var bot))
+    if (ctx.Request.Headers.TryGetValue("bot", out var bot))
     {
         if (bot == _botAuth.GetBotToken())
         {
@@ -111,11 +111,13 @@ app.Use(async (ctx, next) =>
             return;
         }
     }
+
     var path = ctx.Request.Path;
-    if (path.Equals("/login/oauth2/code/github") || path.Equals("/login"))
+    if (path.Value != null && (path.Value.Contains("/login/oauth2/code/github") || path.Value.Contains("/login")))
     {
         // No auth on these endpoints
         await next();
+        return;
     }
 
     // Check discord here as well 
@@ -125,7 +127,7 @@ app.Use(async (ctx, next) =>
         await next();
         return;
     }
-    
+
 
     if (!ctx.User.Identity!.IsAuthenticated)
     {
@@ -136,30 +138,6 @@ app.Use(async (ctx, next) =>
 
     await next.Invoke();
 });
-
-/*app.Use(async (context, next) =>
-{
-    var authHeader = context.Request.Headers.TryGetValue("Authorization", out var authHeaderValue);
-
-    if (!authHeader)
-    {
-        //todo: un-auth:
-    }
-
-    // Remove the 'Bearer ' if it exists.
-    var token = authHeaderValue.ToString()["Bearer ".Length..].Trim();
-
-    if (token.Equals("test token"))
-    {
-        await next.Invoke();
-    }
-
-
-    // var key = Encoding.ASCII.GetBytes(JwtSecretKey);
-
-    // Do work that can write to the Response.
-    // Do logging or other work that doesn't write to the Response.
-});*/
 
 
 app.MapControllers();

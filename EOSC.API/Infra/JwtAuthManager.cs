@@ -11,21 +11,26 @@ namespace EOSC.API.Infra;
 
 public interface IJwtAuthManager
 {
-    JwtAuthResult GenerateToken(string username, DateTime now);
+    JwtAuthResult GenerateToken(string githubToken, DateTime now);
 }
 
 public class JwtAuthManager(JwtTokenConfig jwtTokenConfig) : IJwtAuthManager
 {
     private readonly byte[] _secret = Encoding.ASCII.GetBytes(jwtTokenConfig.Secret);
 
-    public JwtAuthResult GenerateToken(string username, DateTime now)
+    public JwtAuthResult GenerateToken(string githubToken, DateTime now)
     {
         var jwtToken = new JwtSecurityToken(
             jwtTokenConfig.Issuer,
             jwtTokenConfig.Audience,
+            claims: new List<Claim>
+            {
+                new("token", githubToken)
+            },
             expires: now.AddMinutes(jwtTokenConfig.AccessTokenExpiration),
             signingCredentials: new SigningCredentials(new SymmetricSecurityKey(_secret),
                 SecurityAlgorithms.HmacSha256Signature));
+
         var accessToken = new JwtSecurityTokenHandler().WriteToken(jwtToken);
 
 

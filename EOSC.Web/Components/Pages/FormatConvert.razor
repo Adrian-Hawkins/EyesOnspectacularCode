@@ -1,103 +1,93 @@
 @page "/serialise"
-@using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue
-@inject HttpClient HttpClient
-@using System.Text;
-@using System.IO
-@using System.Xml
+@using EOSC.Common.Services
 @using EOSC.Common.Requests
 @using EOSC.Common.Responses
-@using EOSC.Common.Services
+@inject ApiCallService ApiCallService
 
 <PageTitle>Formatting Tool</PageTitle>
 
 <h1>Formatting Tool</h1>
 
 <div class="container px-1 py-1  border border-primary rounded" style="height:100%;width:100%;">
-  <div class="row gx-1" style="height:100%">
-    <div class="col" style="height:100%;width: 45%;">
-     <div class="p-3 border bg-light rounded" style="height:100%">
-        <textarea class="form-control bg-light" style="width: 100%; height:90%;border: none;overflow: auto;" aria-label="With textarea" placeholder="Paste text..." @bind="InputText"></textarea>
-        <div class="" style="height:10%">
-            <button class="btn btn-outline-secondary dropdown-toggle btn-m px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false">@SwapMode</button>
-                <ul class="dropdown-menu">
-                    <li>
-                        <div class="dropdown-item" @onclick="SetToJSON">JSON</div>
-                    </li>
-                    <li>
-                        <div class="dropdown-item" @onclick="SetToXML">XML</div>
-                    </li>
-                    <li>
-                        <div class="dropdown-item" @onclick="SetToHTML">HTML</div>
-                    </li>
-                </ul>
-            <button class="btn btn-primary" @onclick="formatText">Convert</button>
+    <div class="row gx-1" style="height:100%">
+        <div class="col" style="height:100%;width: 45%;">
+            <div class="p-3 border bg-light rounded" style="height:100%">
+                <textarea class="form-control bg-light" style="width: 100%; height:90%;border: none;overflow: auto;" aria-label="With textarea" placeholder="Paste text..." @bind="InputText"></textarea>
+                <div class="" style="height:10%">
+                    <button class="btn btn-outline-secondary dropdown-toggle btn-m px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false">@SwapMode</button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <div class="dropdown-item" @onclick="SetToJson">JSON</div>
+                        </li>
+                        <li>
+                            <div class="dropdown-item" @onclick="SetToXml">XML</div>
+                        </li>
+                        <li>
+                            <div class="dropdown-item" @onclick="SetToHtml">HTML</div>
+                        </li>
+                    </ul>
+                    <button class="btn btn-primary" @onclick="FormatText">Convert</button>
+                </div>
+            </div>
         </div>
-     </div>
+        <div class="col" style="height:100%;width: 45%;">
+            <div class="p-3 border bg-light rounded" style="height:100%;width:100%">
+                <pre style="height:100%;width:100%;overflow: scroll;"><code class="language-java" style="height: 100%;width: 100%;">@_responseMessage</code></pre>
+            </div>
+        </div>
     </div>
-    <div class="col" style="height:100%;width: 45%;">
-      <div class="p-3 border bg-light rounded" style="height:100%;width:100%">
-        <pre style="height:100%;width:100%;overflow: scroll;"><code class="language-java" style="height: 100%;width: 100%;">@_responseMessage</code></pre>
-      </div>
-    </div>
-  </div>
 </div>
-
 
 
 @code {
 
-    private readonly ApiCallService _apiCallService = new();
     private string? _responseMessage;
     private string SwapMode { get; set; } = "JSON";
+    private string InputText { get; set; } = "";
 
-    private string Command { get; set; }="";
-    private string InputText { get; set; }="";
-    private void SetToJSON()
+    private void SetToJson()
     {
         SwapMode = "JSON";
     }
 
-    private void SetToXML()
+    private void SetToXml()
     {
         SwapMode = "XML";
     }
 
-    private void SetToHTML()
+    private void SetToHtml()
     {
         SwapMode = "HTML";
     }
 
-    private async Task formatText(){
-
-        switch(SwapMode){
-            case "JSON":
-                _responseMessage = await JsonPrettier();
-                break;
-            case "XML":
-                _responseMessage = await formatXMl();
-                break;
-            case "HTML":
-                _responseMessage = await formatXMl();
-                break;
-
-        }
-
+    private async Task FormatText()
+    {
+        _responseMessage = SwapMode switch
+        {
+            "JSON" => await JsonPrettier(),
+            "XML" => await FormatXMl(),
+            "HTML" => await FormatXMl(),
+            _ => _responseMessage
+        };
     }
 
-    private async Task<string> formatXMl(){
-
+    private async Task<string> FormatXMl()
+    {
         string formattedXml;
 
         {
-            try{
+            try
+            {
                 var requestObject = new XmlPrettyRequest(InputText);
-                var JsonPretty =
-                    await _apiCallService.MakeApiCall<XmlPrettyRequest, XmlPrettyResponse>(
-                    "/api/JsonFormat/xmlpretty",
+                var jsonPretty =
+                    await ApiCallService.MakeApiCall<XmlPrettyRequest, XmlPrettyResponse>(
+                        "/api/JsonFormat/xmlpretty",
                         requestObject);
 
-                formattedXml = JsonPretty.PrettyXml.ToString();
-            }catch (Exception ex){
+                formattedXml = jsonPretty.PrettyXml;
+            }
+            catch (Exception ex)
+            {
                 formattedXml = "Error: " + ex.Message;
             }
         }
@@ -107,20 +97,20 @@
     private async Task<string> JsonPrettier()
     {
         try
-            {
-                var requestObject = new JsonPrettyRequest(InputText);
-                var JsonPretty =
-                    await _apiCallService.MakeApiCall<JsonPrettyRequest, JsonPrettyResponse>(
+        {
+            var requestObject = new JsonPrettyRequest(InputText);
+            var jsonPretty =
+                await ApiCallService.MakeApiCall<JsonPrettyRequest, JsonPrettyResponse>(
                     "/api/JsonFormat",
-                        requestObject);
- 
-                return JsonPretty.PrettifiedJson.ToString();
-            }
-            catch (Exception ex)
-            {
-               return $"Error: {ex.Message}";
-            }
+                    requestObject);
+
+            return jsonPretty.PrettifiedJson;
         }
+        catch (Exception ex)
+        {
+            return $"Error: {ex.Message}";
+        }
+    }
 
 
 }
