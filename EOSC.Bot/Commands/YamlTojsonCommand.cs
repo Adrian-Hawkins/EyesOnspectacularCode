@@ -15,6 +15,8 @@ namespace EOSC.Bot.Commands
         {
             var yaml = string.Join(" ", args).Replace("\"", "'");
             var request = new YamlToJsonRequest(yaml);
+            _apiCallService.SetHeader(message.Author.GlobalName);
+            _apiCallService.SetCustomHeader("bot", _botAuth.GetBotToken());
             var response =
                 await _apiCallService.MakeApiCall<YamlToJsonRequest, YamlToJsonResponse>(
                     "/api/YamlToJson",
