@@ -29,4 +29,4 @@ jobs:
       - name: Delete old container
         run: sudo docker rm -f eosc-api-container
       - name: Run container
-        run: sudo docker run -d -e database:connection="${{secrets.DB_CONNECTION_STRING}}" -e gpt:key="${{secrets.GPT_TOKEN}}" -e bot:token="${{secrets.BOT_TOKEN}}" -p 80:8080 --name eosc-api-container ${{secrets.DOCKER_USERNAME}}/eoscapi:latest
+        run: sudo docker run -d -e github:client_id="${{secrets.CLIENT_ID}}" -e jwtTokenConfig:secret="${{secrets.JWT_CONFIG}}" -e github:client_secret="${{secrets.CLIENT_SECRET}}" -e database:connection="${{secrets.DB_CONNECTION_STRING}}" -e web:url="${{secrets.WEB_URL}}" -e gpt:key="${{secrets.GPT_TOKEN}}" -e bot:token="${{secrets.BOT_TOKEN}}" -p 80:8080 --name eosc-api-container ${{secrets.DOCKER_USERNAME}}/eoscapi:latest
