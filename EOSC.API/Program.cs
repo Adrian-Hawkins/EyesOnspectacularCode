@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using EOSC.Common.Constant;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 BotAuth _botAuth = new BotAuth();
@@ -88,8 +89,6 @@ builder.Services.AddSingleton<IHistoryService, HistoryService>();
 
 var app = builder.Build();
 
-app.UseMiddleware<RequestCompletedMiddleware>();
-
 // Configure the HTTP request pipeline.
 // if (app.Environment.IsDevelopment())
 // {
@@ -148,11 +147,17 @@ app.Use(async (ctx, next) =>
         httpClient.DefaultRequestHeaders.Add("User-Agent", "Awesome-Octocat-App");
         var gitHubLogin = await httpClient.GetFromJsonAsync<GitHubLogin>("https://api.github.com/user");
         var name = gitHubLogin.Login;
-        
+        var identity = (ClaimsIdentity)ctx.User.Identity;
+        identity.AddClaim(new Claim("username", name));
+
+        await next();
+        return;
+
     }
 
     await next.Invoke();
 });
+app.UseMiddleware<RequestCompletedMiddleware>();
 
 
 app.MapControllers();
