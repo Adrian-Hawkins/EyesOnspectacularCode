@@ -1,28 +1,31 @@
-﻿@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject ProtectedLocalStorage ProtectedLocalStore
 
 <div class="page">
-    @if (Data == null)
+    @if (Data != null)
     {
-        <div >
-            <button>LOGIN</button>
+        <div class="sidebar">
+            <NavMenu/>
         </div>
     }
-    <div class="sidebar">
-        <NavMenu/>
-    </div>
+
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <a href="https://github.com/Adrian-Hawkins/EyesOnspectacularCode" target="_blank">About</a>
         </div>
 
         <article class="content px-4" style="height: 80vh; width:85vw;">
+            @if (Data == null)
+            {
+                <a class="github-login-button" href="https://github.com/login/oauth/authorize?scope=user:email&client_id=1502c5036e3f64272024">Login with GitHub</a>
+            }
             @Body
         </article>
     </main>
+
+
 </div>
 
 <div id="blazor-error-ui">
@@ -31,15 +34,34 @@
     <a class="dismiss">🗙</a>
 </div>
 
+<style>
+    .github-login-button {
+        background-color: #24292e;
+        color: #ffffff;
+        border: none;
+        border-radius: 4px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .github-login-button:hover {
+        background-color: #2ea44f;
+    }
+</style>
+
 @code
 {
     private string? Data { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        // May be bad to have this run every repaint but we kind of need it 
+        await LoadStateAsync();
+
         if (firstRender)
         {
-            await LoadStateAsync();
             StateHasChanged();
         }
     }
