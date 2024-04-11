@@ -23,28 +23,6 @@ public class CurlConverterController : ControllerBase
         _logger = logger;
         _client = new HttpClient();
     }
-
-   /* [HttpGet(Name = "toCurl")]
-    public async Task<ConvertedCurlDto?> Get()
-    {
-        try
-        {
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://curlconv.netlify.app/convert")
-            {
-                Content = new StringContent("", Encoding.UTF8, "application/json")
-            };
-
-            var response = await _client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-            var curlDto = await response.Content.ReadFromJsonAsync<ConvertedCurlDto>();
-            return curlDto;
-        }
-        catch (Exception ex)
-        {
-            //TODO: Handle exceptions here
-            throw;
-        }
-    }*/
     [Tool("curlconvert")]
     [HttpPost]
     public async Task<IActionResult> ConvertCurl([FromBody] CurlRequest request)
@@ -54,7 +32,7 @@ public class CurlConverterController : ControllerBase
             Console.WriteLine("Received Object : " + request);
             string prettyXml = await MakeHttpRequest(request.command,request.language);
             var response = new CurlResponse(prettyXml);
-            //logic to save to the database
+            
             return Ok(response);
         }
         catch (Exception ex)
