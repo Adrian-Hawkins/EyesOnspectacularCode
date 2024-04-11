@@ -17,17 +17,17 @@ public class XmlPrettyCommand : BaseCommand
 
         if (message.Content.Split(" ").Length <= 1)
         {
-            await SendMessageAsync("Usage: !XmlPretty <xml>", message.ChannelId, discordToken);
+            await SendMessageAsync("Usage: !XmlPretty <xml>", message, discordToken);
             return;
         }
 
         string xmlString = message.Content.Substring("!xmlpretty ".Length);
-        var response = await formatXMl(xmlString);
+        var response = await FormatXMl(xmlString);
 
-        await SendMessageAsync($"```{response}```", message.ChannelId, discordToken);
+        await SendMessageAsync($"```{response}```", message, discordToken);
     }
 
-    private async Task<string> formatXMl(string InputText)
+    private async Task<string> FormatXMl(string InputText)
     {
 
         string formattedXml;
@@ -36,12 +36,12 @@ public class XmlPrettyCommand : BaseCommand
             try
             {
                 var requestObject = new XmlPrettyRequest(InputText);
-                var JsonPretty =
+                var jsonPretty =
                     await _apiCallService.MakeApiCall<XmlPrettyRequest, XmlPrettyResponse>(
                     "/api/JsonFormat/xmlpretty",
                         requestObject);
 
-                formattedXml = JsonPretty.PrettyXml.ToString();
+                formattedXml = jsonPretty.PrettyXml.ToString();
             }
             catch (Exception ex)
             {

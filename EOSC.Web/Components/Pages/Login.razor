@@ -1,6 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using EOSC.Common.Services
 @inject ProtectedLocalStorage ProtectedLocalStore
 @inject NavigationManager NavigationManager
+@inject ApiCallService ApiCallService
+
 @page "/Login/{code}"
 <div style="width:800px; margin:0 auto;">
     <h3>AUTH LOADING...</h3>
@@ -24,6 +27,8 @@
         if (Code != null)
         {
             await ProtectedLocalStore.SetAsync("token", Code);
+            // Most probably did not need local storage cus we have ApiCallService as inject
+            ApiCallService.SetAuthorization(Code);
             await Task.Delay(1000);
             NavigationManager.NavigateTo("/");
         }

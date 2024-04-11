@@ -8,7 +8,7 @@ using EOSC.Common.Services;
 namespace EOSC.Bot.Commands;
 
 [Command("datetime")]
-public class DateTimeCommand : BaseCommand
+public partial class DateTimeCommand : BaseCommand
 {
     private readonly ApiCallService _apiCallService = new();
 
@@ -18,7 +18,7 @@ public class DateTimeCommand : BaseCommand
         var pattern = @"\((.*?)\)";
         var matches = Regex.Matches(content, pattern);
         var parsedList = matches.Select(m => m.Groups[1].Value).ToList();
-        if (parsedList.Count() != 3)
+        if (parsedList.Count != 3)
         {
             await SendMessageAsync("Usage: !datetime <(dateTimeString)> <(originalFormat)> <(desiredFormat)>",
                 message, botToken);

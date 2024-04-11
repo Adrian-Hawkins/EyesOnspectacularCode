@@ -14,15 +14,13 @@ namespace EOSC.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] YamlToJsonRequest request)
         {
-            string query = $@"
-                    Please convert this yaml to json, in your response only provide the converted json, only say the word ""invalid"" if the yaml found is not valid
-
-                    {request.YamlData}
-            ";
+            var query = $"""
+                                            Please convert this yaml to json, in your response only provide the converted json, only say the word "invalid" if the yaml found is not valid
+                                             {request.YamlData}
+                         """;
 
             GPTResponse result = await GptQuery.GenerateText(query);
             return Ok(new YamlToJsonResponse(result.responseString));
-
         }
     }
 }
