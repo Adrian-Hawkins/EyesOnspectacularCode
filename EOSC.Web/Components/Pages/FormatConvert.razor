@@ -67,7 +67,7 @@
         {
             "JSON" => await JsonPrettier(),
             "XML" => await FormatXMl(),
-            "HTML" => await FormatXMl(),
+            "HTML" => await formatHTML(),
             _ => _responseMessage
         };
     }
