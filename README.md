@@ -1,6 +1,23 @@
 # C# levelup - Eyes On The Spectacular Code
-### Eyes On The Spectacular Code is a set of dev tools which is accesible through both our discord chat bot and our web app
+### Eyes On The Spectacular Code is a set of developer tools which is accesible through our Discord chatbot or our web app.
 ### We combine external tools all into one convenient place for devs to access
+
+## Some Features
+
+###  Curl Conversion
+- **Description:** Converts curl commands to a programming language of your choice.
+
+### Date/Time Conversion
+- **Description:** Converts date/times to from one format to another.
+
+### YAML to JSON Converter
+- **Description:** Converts YAML to JSON.
+
+### HTML/JSON/XML Formatters
+- **Description:** Formats unformatted HTML/JSON/XML files.
+
+#### And much more...
+
 
 ## [Invite Discord Bot to your server](https://discord.com/oauth2/authorize?client_id=1223255852711153704&permissions=8&scope=bot)
 

@@ -1,24 +1,21 @@
 ﻿@page "/base64"
-@using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue
-@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
-@inject ProtectedLocalStorage ProtectedLocalStore
-
-@inject HttpClient HttpClient
+@using EOSC.Common.Services
 @using EOSC.Common.Requests
 @using EOSC.Common.Responses
-@using EOSC.Common.Services
+@inject ApiCallService Api
 
 <PageTitle>Base 64 Decode/Encode</PageTitle>
 
 <h1>Base 64 Decode/Encode</h1>
 
-<div class="input-group">
+@*<div class="input-group">
     <span class="input-group-text">With textarea</span>
     <textarea class="form-control" aria-label="With textarea"></textarea>
-</div>
+</div>*@
 
 <div class="input-group mb-3">
-    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
+    <button class="btn btn-outline-secondary dropdown-toggle btn-lg px-5" type="button" data-bs-toggle="dropdown" aria-expanded="false">@SwapMode</button>
+    @* <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"></button> *@
     <ul class="dropdown-menu">
 
         <li>
@@ -37,7 +34,6 @@
 </div>
 
 @code {
-    private readonly ApiCallService _apiCallService = new();
     private string? _responseMessage;
     private string SwapMode { get; set; } = "Encode";
     private string InputText { get; set; } = "";
@@ -65,7 +61,7 @@
             {
                 case "Encode":
                     var base64EncodeResponse =
-                        await _apiCallService.MakeApiCall<Base64EncodeRequest, Base64EncodeResponse>(
+                        await Api.MakeApiCall<Base64EncodeRequest, Base64EncodeResponse>(
                             "/api/b64e",
                             new Base64EncodeRequest(InputText));
 
@@ -74,7 +70,7 @@
 
                 case "Decode":
                     var base64DecodeResponse =
-                        await _apiCallService.MakeApiCall<Base64DecodeRequest, Base64DecodeResponse>(
+                        await Api.MakeApiCall<Base64DecodeRequest, Base64DecodeResponse>(
                             "/api/b64d",
                             new Base64DecodeRequest(InputText));
                     _responseMessage = base64DecodeResponse.DecodedMessage;
@@ -86,4 +82,5 @@
             _responseMessage = "Error: " + ex.Message;
         }
     }
+
 }

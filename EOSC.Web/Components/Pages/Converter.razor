@@ -2,7 +2,7 @@
 @using EOSC.Common.Services;
 @using EOSC.Common.Requests
 @using EOSC.Common.Responses
-@inject ApiCallService ApiCallService
+@inject ApiCallService Api
 
 <h3>Convert YAML to JSON</h3>
 
@@ -29,7 +29,7 @@
     {
         _yamlData = _yamlData.Replace("\"", "'");
         var request = new YamlToJsonRequest(_yamlData);
-        var response = await ApiCallService.MakeApiCall<YamlToJsonRequest, YamlToJsonResponse>("/api/YamlToJson", request);
+        var response = await Api.MakeApiCall<YamlToJsonRequest, YamlToJsonResponse>("/api/YamlToJson", request);
         _jsonData = response.JsonResult;
     }
 

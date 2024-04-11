@@ -1,10 +1,9 @@
 @page "/curl"
-@using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue
-@inject HttpClient HttpClient
-@using System.Text
+@using EOSC.Common.Services
 @using EOSC.Common.Requests
 @using EOSC.Common.Responses
-@using EOSC.Common.Services
+@inject HttpClient HttpClient
+@inject ApiCallService Api
 
 <PageTitle>Curl Conversion</PageTitle>
 
@@ -24,6 +23,9 @@
         <li>
             <div class="dropdown-item" @onclick="SetToPython">Python</div>
         </li>
+        <li>
+            <div class="dropdown-item" @onclick="SetToSeeSharp">C#</div>
+        </li>
     </ul>
     <textarea class="form-control" aria-label="With textarea" @bind="Command"></textarea>
     <button class="btn btn-primary" @onclick="ConvertCurl">Convert</button>
@@ -36,11 +38,16 @@
 </div>
 
 @code {
-    private readonly ApiCallService _apiCallService = new();
     private string? _responseMessage;
     private string SwapMode { get; set; } = "Rust";
 
-    private string Command { get; set; }="";
+    private string Command { get; set; } = "";
+
+    private void SetToSeeSharp()
+    {
+        SwapMode = "csharp";
+    }
+
 
     private void SetToRust()
     {
@@ -61,19 +68,19 @@
     {
         try
         {
-            var requestObject = new CurlRequest(Command,SwapMode);
+            var requestObject = new CurlRequest(Command, SwapMode);
             var curlCode =
-                await _apiCallService.MakeApiCall<CurlRequest, CurlResponse>(
-            "/api/CurlConverter",
-                    new CurlRequest(Command.Replace("\"","\'").Replace("\\",""), SwapMode));
+                await Api.MakeApiCall<CurlRequest, CurlResponse>(
+                    "/api/CurlConverter",
+                    new CurlRequest(Command.Replace("\"", "\'").Replace("\\", ""), SwapMode));
 
             _responseMessage = curlCode.code.ToString();
-            }
-            catch (Exception ex)
-            {
-               _responseMessage = $"Error: {ex.Message}";
-            }
         }
+        catch (Exception ex)
+        {
+            _responseMessage = $"Error: {ex.Message}";
+        }
+    }
 
 
 }
