@@ -5,6 +5,7 @@ using EOSC.API.Service.github_auth;
 using EOSC.Common.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using EOSC.Common.Constant;
 
 namespace EOSC.API.Controllers;
 
@@ -40,7 +41,7 @@ public class AuthController(
         return Ok(jwtAuthResult);
     }
 
-
+    private WebConst _webConst = new();
     [AllowAnonymous]
     [HttpGet("/login/oauth2/code/github")]
     public async Task<ActionResult> AuthTest([FromQuery] string code)
@@ -62,7 +63,7 @@ public class AuthController(
             // We wanted to have this but it broke the redirect as JWT Token was too long :(
             // var redirectResult = Redirect("http://localhost:58721/Login/" + JWT TOKEN!);
 
-            return Redirect("http://localhost:58721/Login/" + githubAccessToken.AccessToken);
+            return Redirect($"{_webConst.GetWebUrl()}/Login/{githubAccessToken.AccessToken}");
         }
         catch (Exception e)
         {
