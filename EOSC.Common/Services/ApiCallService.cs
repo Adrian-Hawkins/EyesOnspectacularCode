@@ -17,6 +17,13 @@ public class ApiCallService
         _httpClient.DefaultRequestHeaders.Add("username", username);
     }
 
+    public void SetAuthorization(string token)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+    }
+
+
     public ApiCallService()
     {
         IConfiguration config = new ConfigurationBuilder()

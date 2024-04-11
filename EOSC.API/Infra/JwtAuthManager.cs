@@ -20,10 +20,9 @@ public class JwtAuthManager(JwtTokenConfig jwtTokenConfig) : IJwtAuthManager
 
     public JwtAuthResult GenerateToken(string username, DateTime now)
     {
-        var shouldAddAudienceClaim = true;
         var jwtToken = new JwtSecurityToken(
             jwtTokenConfig.Issuer,
-            shouldAddAudienceClaim ? jwtTokenConfig.Audience : string.Empty,
+            jwtTokenConfig.Audience,
             expires: now.AddMinutes(jwtTokenConfig.AccessTokenExpiration),
             signingCredentials: new SigningCredentials(new SymmetricSecurityKey(_secret),
                 SecurityAlgorithms.HmacSha256Signature));
@@ -64,14 +63,4 @@ public class JwtAuthManager(JwtTokenConfig jwtTokenConfig) : IJwtAuthManager
 public class JwtAuthResult
 {
     [JsonPropertyName("accessToken")] public string AccessToken { get; set; } = string.Empty;
-}
-
-public class RefreshToken
-{
-    [JsonPropertyName("username")]
-    public string UserName { get; set; } = string.Empty; // can be used for usage tracking
-
-    [JsonPropertyName("tokenString")] public string TokenString { get; set; } = string.Empty;
-
-    [JsonPropertyName("expireAt")] public DateTime ExpireAt { get; set; }
 }

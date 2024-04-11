@@ -47,8 +47,9 @@ public class AuthController(
                 return BadRequest(githubAccessToken.Error);
             }
 
+            var jwtAuthResult = jwtAuthManager.GenerateToken(githubAccessToken.AccessToken, DateTime.Now);
             // return Ok(githubAccessToken.AccessToken);
-            return Redirect("http://localhost:58721/Login/" + githubAccessToken.AccessToken);
+            return Redirect("http://localhost:58721/Login/" + jwtAuthResult);
         }
         catch (Exception e)
         {

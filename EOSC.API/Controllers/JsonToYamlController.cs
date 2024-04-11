@@ -22,7 +22,7 @@ namespace EOSC.API.Controllers
                     {request.YamlData}
             ";
 
-            GPTResponse result = await GPTquery.GenerateText(query);
+            GPTResponse result = await GptQuery.GenerateText(query);
             return Ok(new YamlToJsonResponse(result.responseString));
 
         }

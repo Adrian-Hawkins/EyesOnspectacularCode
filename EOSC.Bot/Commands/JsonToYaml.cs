@@ -30,7 +30,7 @@ namespace EOSC.Bot.Commands
                 request
             );
 
-            await SendMessageAsync($"{response.JsonResult}", message.ChannelId, discordToken);
+            await SendMessageAsync($"{response.JsonResult}", message, discordToken);
         }
     }
 }
