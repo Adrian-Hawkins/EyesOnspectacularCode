@@ -77,3 +77,7 @@ gpt:key = "<YOUR_GPT_KEY>"
 bot:token = "<YOUR_BOT_TOKEN>"
 Discord:Token = "<YOUR_DISCORD_TOKEN>"
 ```
+
+## ERD
+![image](https://github.com/Adrian-Hawkins/EyesOnspectacularCode/assets/159035044/0536a251-3cfb-449a-9965-feee92ca82c0)
+
