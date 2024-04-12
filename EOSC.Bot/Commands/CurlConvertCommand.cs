@@ -37,7 +37,7 @@ public class CurlConvertCommand : BaseCommand
         string language = message.Content.Split(" ")[1];
         string command = "curl " + message.Content.Split("curl ")[1];
         bool isSupported = supportedLanguages.Any(l => string.Equals(l, language, StringComparison.OrdinalIgnoreCase));
-        if (supportedLanguages.Contains(language))
+        if (isSupported)
         {
             string response = await ConvertCurl(command.Replace("\"", "\'").Replace("\\", ""), language);
             await SendMessageAsync($"```\n{response}\n```", message, botToken);
@@ -55,6 +55,7 @@ public class CurlConvertCommand : BaseCommand
         try
         {
             var requestObject = new CurlRequest(command, swapMode);
+            _apiCallService.SetCustomHeader("bot", _botAuth.GetBotToken());
             var curlCode =
                 await _apiCallService.MakeApiCall<CurlRequest, CurlResponse>(
                     "/api/CurlConverter",
