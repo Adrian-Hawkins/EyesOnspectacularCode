@@ -39,7 +39,7 @@ public class CurlConvertCommand : BaseCommand
         bool isSupported = supportedLanguages.Any(l => string.Equals(l, language, StringComparison.OrdinalIgnoreCase));
         if (supportedLanguages.Contains(language))
         {
-            string response = await ConvertCurl(command.Replace("\"", "\'").Replace("\\", ""), language);
+            string response = await ConvertCurl(command.Replace("\"", "\'").Replace("\\", ""), language, message);
             await SendMessageAsync($"```\n{response}\n```", message, botToken);
         }
         else
@@ -50,10 +50,12 @@ public class CurlConvertCommand : BaseCommand
         }
     }
 
-    private async Task<string> ConvertCurl(string command, string swapMode)
+    private async Task<string> ConvertCurl(string command, string swapMode, Message message)
     {
         try
         {
+            _apiCallService.SetHeader(message.Author.GlobalName);
+            _apiCallService.SetCustomHeader("bot", _botAuth.GetBotToken());
             var requestObject = new CurlRequest(command, swapMode);
             var curlCode =
                 await _apiCallService.MakeApiCall<CurlRequest, CurlResponse>(
