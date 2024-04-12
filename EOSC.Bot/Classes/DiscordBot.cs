@@ -69,13 +69,11 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
         {
             try
             {
-                // Send heartbeat message
                 SendHeartbeat();
                 await Task.Delay(HeartbeatInterval, _cts.Token);
             }
             catch (TaskCanceledException)
             {
-                // Heartbeat loop was canceled
                 break;
             }
             catch (Exception ex)
@@ -87,7 +85,6 @@ public class DiscordBot(DiscordToken token) : IDiscordBot
 
     private void SendHeartbeat()
     {
-        // Assuming your heartbeat message is JSON formatted
         string heartbeatMessage = "{\"op\": 1, \"d\": null}";
 
         byte[] bytes = Encoding.UTF8.GetBytes(heartbeatMessage);
